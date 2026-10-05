@@ -1,0 +1,89 @@
+.stage {
+  --voice-level: 0;
+
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-8);
+  /* Leaves the optical centre a little above the record button's column. */
+  padding-bottom: 96px;
+  padding-right: var(--studio-stage-inset-right, 0);
+  overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 50% 42%, rgb(var(--holo-lilac-rgb) / 0.07), transparent 70%),
+    var(--color-canvas);
+}
+
+.orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(180px, 30vmin, 280px);
+  aspect-ratio: 1;
+}
+
+.glow {
+  position: absolute;
+  inset: -34%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 200deg,
+    rgb(var(--holo-lilac-rgb) / 0.8),
+    rgb(var(--holo-ice-rgb) / 0.7),
+    rgb(var(--holo-mint-rgb) / 0.6),
+    rgb(var(--holo-lilac-rgb) / 0.8)
+  );
+  filter: blur(64px);
+  opacity: calc(0.24 + 0.4 * var(--voice-level));
+  transform: scale(calc(0.9 + 0.16 * var(--voice-level)));
+  will-change: opacity, transform;
+}
+
+/* A hairline ring in the accent gradient: the padding box is masked away, leaving the border. */
+.ring {
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: 50%;
+  background: linear-gradient(
+    140deg,
+    rgb(var(--holo-lilac-rgb) / 0.9),
+    rgb(var(--holo-ice-rgb) / 0.75) 52%,
+    rgb(var(--holo-mint-rgb) / 0.6)
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  opacity: calc(0.5 + 0.5 * var(--voice-level));
+}
+
+.icon {
+  position: relative;
+  color: var(--color-text-secondary);
+}
+
+.caption {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.caption strong {
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* The glow holds still for people who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .stage {
+    --voice-level: 0.3 !important;
+  }
+}
