@@ -1,0 +1,151 @@
+.button {
+  --button-height: var(--control-height-md);
+  --button-padding: 14px;
+  --button-shadow: var(--shadow-none);
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: none;
+  height: var(--button-height);
+  padding: 0 var(--button-padding);
+  border: var(--hairline) solid transparent;
+  border-radius: var(--radius-full);
+  box-shadow: var(--button-shadow);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button:focus-visible {
+  box-shadow: var(--button-shadow), var(--focus-halo);
+}
+
+.button:active:not(:disabled, .loading) {
+  transform: scale(0.97);
+}
+
+.button:disabled {
+  opacity: 0.4;
+}
+
+.loading {
+  cursor: progress;
+}
+
+/* ── Sizes ─────────────────────────────────────────────────────────────── */
+.sm {
+  --button-height: var(--control-height-sm);
+  --button-padding: 11px;
+
+  gap: 5px;
+  font-size: var(--text-sm);
+}
+
+.md {
+  --button-height: var(--control-height-md);
+}
+
+.lg {
+  --button-height: var(--control-height-lg);
+  --button-padding: 20px;
+
+  gap: 8px;
+  font-size: var(--text-lg);
+}
+
+.fullWidth {
+  display: flex;
+  width: 100%;
+}
+
+/* ── Variants ──────────────────────────────────────────────────────────── */
+/* Primary is plain near-white: the calmest thing that still reads instantly on any backdrop. */
+.primary {
+  --button-shadow: var(--shadow-solid);
+
+  background: var(--solid-fill);
+  color: var(--color-text-on-light);
+  font-weight: var(--weight-semibold);
+}
+
+.primary:hover:not(:disabled, .loading) {
+  background: var(--solid-fill-hover);
+}
+
+/* Secondary is glass with a light film on top: dark enough to carry white text over bright
+   video, yet a shade lighter than a panel when it sits on one. */
+.secondary {
+  --button-film: var(--layer-2);
+  --button-shadow: var(--glass-edge);
+
+  border-color: var(--glass-border);
+  background: linear-gradient(var(--button-film), var(--button-film)), var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-text-primary);
+}
+
+.secondary:hover:not(:disabled, .loading) {
+  --button-film: var(--layer-3);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled, .loading) {
+  background: var(--layer-2);
+  color: var(--color-text-primary);
+}
+
+/* A soft coral tint, deliberately not the saturated record red. */
+.danger {
+  --button-film: rgb(var(--color-danger-rgb) / 0.16);
+  --button-shadow: var(--glass-edge);
+
+  border-color: rgb(var(--color-danger-rgb) / 0.38);
+  background: linear-gradient(var(--button-film), var(--button-film)), var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-danger);
+}
+
+.danger:hover:not(:disabled, .loading) {
+  --button-film: rgb(var(--color-danger-rgb) / 0.26);
+}
+
+/* ── Parts ─────────────────────────────────────────────────────────────── */
+.icon {
+  display: inline-flex;
+  flex: none;
+  margin-inline: -2px;
+}
+
+.icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.lg .icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sm .icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

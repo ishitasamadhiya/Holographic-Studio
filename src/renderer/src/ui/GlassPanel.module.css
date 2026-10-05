@@ -1,0 +1,72 @@
+.panel {
+  position: relative;
+  border: var(--hairline) solid var(--glass-border);
+  background: var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+  color: var(--color-text-primary);
+}
+
+/* The most see-through variant leaves the least contrast behind text, so fine print is
+   lifted to the secondary level inside it: that is what 4.5:1 takes over a white wall. */
+.variant-subtle {
+  --color-text-tertiary: var(--color-text-secondary);
+
+  background: var(--glass-fill-subtle);
+}
+
+.variant-regular {
+  background: var(--glass-fill-regular);
+}
+
+.variant-strong {
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-backdrop-strong);
+}
+
+.elevation-flat {
+  box-shadow: var(--glass-edge);
+}
+
+.elevation-raised {
+  box-shadow: var(--glass-edge), var(--shadow-md);
+}
+
+.elevation-floating {
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+}
+
+.radius-sm {
+  border-radius: var(--radius-sm);
+}
+
+.radius-md {
+  border-radius: var(--radius-md);
+}
+
+.radius-lg {
+  border-radius: var(--radius-lg);
+}
+
+.radius-xl {
+  border-radius: var(--radius-xl);
+}
+
+.radius-pill {
+  border-radius: var(--radius-full);
+}
+
+.padding-none {
+  padding: 0;
+}
+
+.padding-sm {
+  padding: var(--space-3);
+}
+
+.padding-md {
+  padding: var(--space-4);
+}
+
+.padding-lg {
+  padding: var(--space-6);
+}

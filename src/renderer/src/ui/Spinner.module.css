@@ -1,0 +1,70 @@
+.spinner {
+  --spinner-size: 16px;
+  --spinner-stroke: 2px;
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--spinner-size);
+  height: var(--spinner-size);
+  border-radius: 50%;
+  /* The ring is a conic gradient with its centre masked out. */
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - var(--spinner-stroke)),
+    #000 calc(100% - var(--spinner-stroke) + 0.5px)
+  );
+  animation: spin var(--loop-spin) linear infinite;
+}
+
+.accent {
+  background: conic-gradient(
+    from 90deg,
+    rgb(var(--holo-lilac-rgb) / 0) 0deg,
+    var(--holo-lilac) 120deg,
+    var(--holo-ice) 250deg,
+    var(--holo-mint) 340deg,
+    #fff 360deg
+  );
+}
+
+.current {
+  background: conic-gradient(from 90deg, transparent 0deg, currentcolor 360deg);
+}
+
+.sm {
+  --spinner-size: 12px;
+  --spinner-stroke: 1.5px;
+}
+
+.md {
+  --spinner-size: 16px;
+}
+
+.lg {
+  --spinner-size: 28px;
+  --spinner-stroke: 3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Still communicates "busy", just without continuous rotation. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: breathe var(--loop-pulse-slow) ease-in-out infinite alternate;
+  }
+
+  @keyframes breathe {
+    from {
+      opacity: 0.45;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}

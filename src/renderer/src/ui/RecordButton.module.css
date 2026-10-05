@@ -1,0 +1,152 @@
+.button {
+  --record-size: 72px;
+  --record-ring: 3.5px;
+  --record-gap: 5px;
+  --record-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.35), 0 6px 20px -4px rgb(0 0 0 / 0.5);
+
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--record-size);
+  height: var(--record-size);
+  border-radius: 50%;
+  /* A dark blurred disc behind the white ring keeps it visible on a white backdrop. */
+  background: rgb(var(--glass-tint) / 0.5);
+  backdrop-filter: blur(var(--blur-sm)) brightness(0.62);
+  box-shadow: var(--record-shadow);
+  /* Keeps the ripple's negative z-index inside the button. */
+  isolation: isolate;
+  transition:
+    opacity var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.md {
+  --record-size: 56px;
+  --record-ring: 3px;
+  --record-gap: 4px;
+}
+
+.lg {
+  --record-size: 72px;
+}
+
+.button:focus-visible {
+  box-shadow: var(--record-shadow), var(--focus-halo);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.button:disabled {
+  opacity: 0.4;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border: var(--record-ring) solid rgb(255 255 255 / 0.96);
+  border-radius: 50%;
+  transition: border-color var(--duration-base) ease;
+}
+
+/* The red shape: a disc when idle, morphing into the rounded stop square while recording. */
+.core {
+  width: calc(var(--record-size) - 2 * (var(--record-ring) + var(--record-gap)));
+  height: calc(var(--record-size) - 2 * (var(--record-ring) + var(--record-gap)));
+  border-radius: 50%;
+  background: var(--color-record);
+  transition:
+    width var(--duration-base) var(--ease-out),
+    height var(--duration-base) var(--ease-out),
+    border-radius var(--duration-base) var(--ease-out),
+    opacity var(--duration-base) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button:hover:not(:disabled) .core {
+  transform: scale(1.04);
+}
+
+.button[data-state='recording'] .core,
+.button[data-state='paused'] .core {
+  width: calc(var(--record-size) * 0.36);
+  height: calc(var(--record-size) * 0.36);
+  border-radius: 24%;
+}
+
+/* The recording ripple lives on a pseudo-element: animating the button's own box-shadow
+   would override the focus halo for as long as a take is running. Its negative z-index
+   paints it under the focus outline. */
+.button[data-state='recording']::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: ripple var(--loop-ripple) var(--ease-out) infinite;
+}
+
+/* Paused: the take is still open, so the stop square stays and slowly breathes. */
+.button[data-state='paused'] .core {
+  opacity: 0.6;
+  animation: breathe var(--loop-pulse) ease-in-out infinite alternate;
+}
+
+.button[data-state='countdown'] .core {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-primary);
+  font-family: var(--font-rounded);
+  font-size: calc(var(--record-size) * 0.44);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: tick var(--duration-slow) var(--ease-out);
+}
+
+@keyframes tick {
+  from {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* A slow ring that leaves the button and fades; it restarts hidden under the white ring. */
+@keyframes ripple {
+  from {
+    box-shadow: 0 0 0 0 var(--color-record-glow);
+  }
+
+  to {
+    box-shadow: 0 0 0 9px rgb(var(--color-record-rgb) / 0);
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button[data-state='recording']::after,
+  .button[data-state='paused'] .core {
+    animation: none;
+  }
+}

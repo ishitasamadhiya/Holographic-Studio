@@ -1,0 +1,110 @@
+.button {
+  --icon-button-size: 36px;
+  --icon-button-shadow: var(--shadow-none);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  border: var(--hairline) solid transparent;
+  border-radius: 50%;
+  box-shadow: var(--icon-button-shadow);
+  color: var(--color-text-primary);
+  transition:
+    background-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.button:focus-visible {
+  box-shadow: var(--icon-button-shadow), var(--focus-halo);
+}
+
+.button:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.button:disabled {
+  opacity: 0.38;
+}
+
+.button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.sm {
+  --icon-button-size: 28px;
+}
+
+.sm svg {
+  width: 15px;
+  height: 15px;
+}
+
+.md {
+  --icon-button-size: 36px;
+}
+
+.lg {
+  --icon-button-size: 44px;
+}
+
+.lg svg {
+  width: 20px;
+  height: 20px;
+}
+
+.glass {
+  --icon-button-shadow: var(--glass-edge), var(--shadow-sm);
+
+  border-color: var(--glass-border);
+  background: var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+}
+
+.glass:hover:not(:disabled) {
+  background: var(--glass-fill-strong);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--layer-2);
+  color: var(--color-text-primary);
+}
+
+.solid {
+  --icon-button-shadow: var(--shadow-solid);
+
+  background: var(--solid-fill);
+  color: var(--color-text-on-light);
+}
+
+.solid:hover:not(:disabled) {
+  background: var(--solid-fill-hover);
+}
+
+/* Toggled on. Over video the button lights up white (readable on any picture); on a panel
+   a brighter film is enough. The state itself is carried by aria-pressed. */
+.glass[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--solid-fill);
+  backdrop-filter: none;
+  color: var(--color-text-on-light);
+}
+
+.glass[aria-pressed='true']:hover:not(:disabled) {
+  background: var(--solid-fill-hover);
+}
+
+.ghost[aria-pressed='true'] {
+  background: var(--layer-4);
+  color: var(--color-text-primary);
+}
