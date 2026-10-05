@@ -1,0 +1,84 @@
+.root {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.label {
+  color: var(--color-text-secondary);
+}
+
+.value {
+  margin-left: auto;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.track {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--track-fill);
+}
+
+.sm {
+  height: 3px;
+}
+
+.md {
+  height: 4px;
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--holo-gradient);
+  clip-path: inset(0 calc((1 - var(--progress)) * 100%) 0 0 round 999px);
+  transition: clip-path var(--duration-slow) var(--ease-out);
+}
+
+/* Unknown duration: a short piece of the gradient glides across the track. */
+.indeterminate .fill {
+  right: auto;
+  width: 38%;
+  clip-path: none;
+  animation: glide var(--loop-glide) var(--ease-in-out) infinite;
+}
+
+@keyframes glide {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(264%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indeterminate .fill {
+    width: 100%;
+    animation: pulse var(--loop-pulse-slow) ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse {
+    from {
+      opacity: 0.35;
+    }
+
+    to {
+      opacity: 0.9;
+    }
+  }
+}
