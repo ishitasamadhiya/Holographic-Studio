@@ -339,3 +339,13 @@ Tick each box only when the **Expected** result happens.
       error).
 - [ ] Settings → Advanced → **Run setup again**. **Expected:** the wizard opens with the current
       settings selected.
+
+## Checking the packaged app
+
+After `npm run dist`, this records and exports a three-second take inside the packaged
+`.app` (synthetic camera and microphone, muted audio) and checks the MP4 it saved. It proves
+the bundle works on its own, including the FFmpeg binary that ships outside the app archive:
+
+```bash
+npm run verify:packaged
+```
