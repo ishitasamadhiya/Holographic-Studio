@@ -114,7 +114,7 @@ export function StudioScreen({ initialOverlay }: StudioScreenProps = {}) {
 
       <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ExportFlow />
-      <NoticeToasts store={toasts} />
+      <NoticeToasts store={toasts} shownElsewhere={problem?.message ?? null} />
     </div>
   );
 }
