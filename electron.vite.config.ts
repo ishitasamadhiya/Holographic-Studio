@@ -43,6 +43,8 @@ export default defineConfig({
           gallery: resolve(__dirname, 'src/renderer/gallery.html'),
           'tracking-probe': resolve(__dirname, 'src/renderer/tracking-probe.html'),
           'engine-probe': resolve(__dirname, 'src/renderer/engine-probe.html'),
+          'wizard-preview': resolve(__dirname, 'src/renderer/wizard-preview.html'),
+          'studio-preview': resolve(__dirname, 'src/renderer/studio-preview.html'),
         },
       },
     },
