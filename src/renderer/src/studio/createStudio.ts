@@ -35,6 +35,9 @@ export const CALIBRATION_MS = 1500;
 
 export const TAKE_IN_PROGRESS_MESSAGE = 'Finish or discard the current take first.';
 
+/** Keyboard nudges are kept to millionths: far finer than any slider step. */
+const NUDGE_PRECISION = 1e6;
+
 const DEVICE_FALLBACK_MESSAGES: Record<DeviceGroup, string> = {
   microphones: 'Your selected microphone is no longer connected. Using the system default.',
   cameras: 'Your selected camera is no longer connected. Using the default camera.',
@@ -197,6 +200,8 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
 
   const onDeviceChange = (): void => {
     void refreshDevices();
+    // A lost microphone could not be reopened yet; this change may have brought one back.
+    if (reopenAudioOnDeviceChange && !recording.isTakeInProgress) void startAudio();
   };
 
   /** Device switches run one at a time, in the order they were asked for. */
@@ -218,7 +223,10 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
 
   async function applyDeviceSelection(): Promise<void> {
     const { devices, video } = get().settings;
-    if (engine.isRunning && engineDevices) {
+    if (engine.fault !== null) {
+      // Live audio is broken anyway: start it again, with the new choice.
+      await startAudio();
+    } else if (engine.isRunning && engineDevices) {
       if (devices.microphoneId !== engineDevices.microphoneId) {
         engineDevices.microphoneId = devices.microphoneId;
         reportEngineResult(await engine.setMicrophone(devices.microphoneId));
@@ -262,9 +270,17 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
   }
 
   let audioStart: Promise<void> | null = null;
+  /** Set when the microphone went away; cleared once live audio runs again. */
+  let reopenAudioOnDeviceChange = false;
 
+  /** The engine runs and nothing inside it has broken since it started. */
+  function isAudioWorking(): boolean {
+    return engine.isRunning && engine.fault === null;
+  }
+
+  /** Starts live audio, or starts it again when it has broken. */
   function startAudio(): Promise<void> {
-    if (engine.isRunning) return Promise.resolve();
+    if (isAudioWorking()) return Promise.resolve();
     audioStart ??= openAudio().finally(() => {
       audioStart = null;
     });
@@ -272,6 +288,8 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
   }
 
   async function openAudio(): Promise<void> {
+    // A restart ends the backing-track audition.
+    stopPreview();
     setEngineState({ status: 'starting', error: null });
     if (isBlocked(await ensureAccess('microphone'))) {
       const error = createAppError('microphone-permission-denied');
@@ -307,11 +325,14 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
     }
 
     engineDevices = opened;
+    // A microphone lost while this start was under way is reopened at the next device change.
+    if (engine.fault === null) reopenAudioOnDeviceChange = false;
     engine.setMix({ ...get().settings.audio });
     songs.restoreEngine();
     setEngineState({
-      status: 'running',
-      error: null,
+      // An audio processor can fail as soon as it starts.
+      status: engine.fault === null ? 'running' : 'error',
+      error: engine.fault,
       monitoringLatencyMs: roundLatencyMs(computeMonitoringLatencySec(engine.getLatency()) * 1000),
     });
     void refreshDevices();
@@ -509,12 +530,20 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
   // ---------------------------------------------------------------------------------------
 
   const unsubscribeEngineErrors = engine.onError((error) => {
-    setEngineState({ status: engine.isRunning ? 'running' : 'error', error });
+    // Until live audio works again, the problem card offers a restart and no take can start.
+    setEngineState({ status: isAudioWorking() ? 'running' : 'error', error });
+    let takeKept: Promise<void> = Promise.resolve();
     if (recording.isTakeInProgress) {
       notify('error', `${error.message} Recording stopped; your take was kept.`);
-      void recording.finishAfterDeviceLoss();
+      takeKept = recording.finishAfterDeviceLoss();
     } else {
       notify('error', error.message);
+    }
+    if (engine.fault?.code === 'device-disconnected') {
+      // The microphone went away. Open the chosen one again (or the current default) once
+      // the take is safe; if that fails, try again whenever the devices change.
+      reopenAudioOnDeviceChange = true;
+      void takeKept.then(() => (reopenAudioOnDeviceChange ? startAudio() : undefined));
     }
   });
 
@@ -566,11 +595,15 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
     await Promise.all([refreshPermissions(), refreshDevices()]);
     liveLoop.start();
 
-    if (settings.onboardingComplete) {
-      set({ phase: 'studio' });
-      await enterStudio();
-    } else {
-      set({ phase: 'wizard' });
+    // Onboarding may have been completed or restarted while the devices were being listed;
+    // that choice stands.
+    if (get().phase === 'loading') {
+      if (settings.onboardingComplete) {
+        set({ phase: 'studio' });
+        await enterStudio();
+      } else {
+        set({ phase: 'wizard' });
+      }
     }
     void restoreLastSession();
   }
@@ -642,7 +675,9 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
     setManualControl: (control, value) => updateControl(control, { manual: clamp01(value) }),
     nudgeManualControl: (control, delta) => {
       const current = get().settings.controls[control].manual;
-      updateControl(control, { manual: clamp01(current + delta) });
+      // Rounded so that repeated nudges land on 0.6, not 0.6000000000000001.
+      const nudged = Math.round((current + delta) * NUDGE_PRECISION) / NUDGE_PRECISION;
+      updateControl(control, { manual: clamp01(nudged) });
     },
 
     chooseBackingTrack: async () => {
@@ -695,6 +730,7 @@ export function createStudio(dependencies: Partial<StudioDependencies> = {}): St
   };
 
   async function dispose(): Promise<void> {
+    reopenAudioOnDeviceChange = false;
     mediaDevices.removeEventListener('devicechange', onDeviceChange);
     liveLoop.stop();
     unsubscribeEngineErrors();

@@ -7,6 +7,8 @@ import { referenceAnalysis } from './testing/fakeEnvironment';
 import { createStudioHarness } from './testing/studioHarness';
 
 const IN_STUDIO = { onboardingComplete: true } as const;
+const MICROPHONE_LOST = createAppError('device-disconnected', 'The microphone track ended');
+const PROCESSOR_FAILED = createAppError('audio-engine-failed', 'The vocal chain failed');
 
 describe('initialize', () => {
   it('starts a fresh profile in the wizard without opening any device', async () => {
@@ -73,6 +75,18 @@ describe('initialize', () => {
       settings: { onboardingComplete: true },
     });
     expect(h.api.storedSettings.onboardingComplete).toBe(true);
+  });
+
+  it('keeps onboarding completed while the devices were still being listed', async () => {
+    const h = createStudioHarness();
+    const stopWatching = h.studio.store.subscribe((state, previous) => {
+      if (state.devices === previous.devices) return;
+      stopWatching();
+      h.actions.completeOnboarding();
+    });
+    await h.actions.initialize();
+    await h.settle();
+    expect(h.state()).toMatchObject({ phase: 'studio', engine: { status: 'running' } });
   });
 
   it('silently restores the last session songs that still exist', async () => {
@@ -241,6 +255,11 @@ describe('settings', () => {
     expect(h.state().settings.controls.echo.manual).toBeCloseTo(0.75, 9);
     h.actions.nudgeManualControl('autotune', -2);
     expect(h.state().settings.controls.autotune.manual).toBe(0);
+    // Repeated steps stay on the grid instead of drifting by floating-point error.
+    h.actions.setManualControl('volume', 0.5);
+    h.actions.nudgeManualControl('volume', 0.05);
+    h.actions.nudgeManualControl('volume', 0.05);
+    expect(h.state().settings.controls.volume.manual).toBe(0.6);
     h.actions.setControlSource('volume', 'manual');
     expect(h.state().settings.controls.volume.source).toBe('manual');
   });
@@ -554,7 +573,7 @@ describe('songs', () => {
 });
 
 describe('recording through the studio', () => {
-  it('finishes the take when the microphone is lost mid-take', async () => {
+  it('keeps the take when the microphone goes away, then opens one again', async () => {
     const h = createStudioHarness({ ...IN_STUDIO, recording: { countdownEnabled: false } });
     await h.openStudio();
     await h.actions.startRecording();
@@ -562,11 +581,31 @@ describe('recording through the studio', () => {
       h.engine.emitChunk(48000);
       await h.clock.advance(1000);
     }
-    h.engine.fail(createAppError('device-disconnected', 'mic unplugged'));
+    // No microphone to open yet: the next one comes with a device change.
+    h.engine.startResults = [fail('no-microphone')];
+    h.engine.breakDown(MICROPHONE_LOST);
+    expect(h.state().engine).toMatchObject({
+      status: 'error',
+      error: { code: 'device-disconnected' },
+    });
     for (let step = 0; step < 20; step++) await h.clock.advance(100);
     expect(h.state().recording.status).toBe('review');
-    expect(h.state().engine.status).toBe('error');
-    expect(h.state().notices.at(-1)?.message).toContain('your take was kept');
+    expect(h.state().notices.some((notice) => notice.message.includes('your take was kept'))).toBe(
+      true,
+    );
+    // The microphone is opened again only once the take is safe.
+    const calls = h.engine.calls.map((call) => call.name);
+    expect(calls.lastIndexOf('stopCapture')).toBeLessThan(calls.lastIndexOf('start'));
+    expect(h.engine.callsNamed('start')).toHaveLength(2);
+    expect(h.state().engine).toMatchObject({ status: 'error', error: { code: 'no-microphone' } });
+
+    h.mediaDevices.emitDeviceChange();
+    await h.settle();
+    expect(h.engine.callsNamed('start')).toHaveLength(3);
+    expect(h.state().engine).toMatchObject({ status: 'running', error: null });
+    h.mediaDevices.emitDeviceChange();
+    await h.settle();
+    expect(h.engine.callsNamed('start')).toHaveLength(3);
   });
 
   it('finishes the take when the camera is unplugged mid-take', async () => {
@@ -601,6 +640,73 @@ describe('recording through the studio', () => {
     await h.runFrames(80, 33, bothFists);
     await h.settle();
     expect(h.state().recording.status).toBe('recording');
+  });
+});
+
+describe('live audio recovery', () => {
+  it('opens the chosen microphone again at once when it goes away between takes', async () => {
+    const h = createStudioHarness({
+      ...IN_STUDIO,
+      mode: 'audio',
+      devices: { microphoneId: 'mic-2' },
+    });
+    await h.actions.initialize();
+    h.engine.breakDown(MICROPHONE_LOST);
+    expect(h.state().engine.status).toBe('error');
+    await h.settle();
+    expect(h.engine.callsNamed('start')).toEqual([
+      [{ microphoneId: 'mic-2', outputId: null }],
+      [{ microphoneId: 'mic-2', outputId: null }],
+    ]);
+    expect(h.state().engine).toMatchObject({ status: 'running', error: null });
+  });
+
+  it('waits for Try Again after an audio processor fails, which restarts live audio', async () => {
+    const h = createStudioHarness({ ...IN_STUDIO, mode: 'audio' });
+    await h.actions.initialize();
+    await h.actions.loadBackingTrack('/songs/backing.wav');
+    h.actions.togglePreviewPlayback();
+    h.engine.breakDown(PROCESSOR_FAILED);
+    await h.settle();
+    h.mediaDevices.emitDeviceChange();
+    await h.settle();
+    expect(h.engine.callsNamed('start')).toHaveLength(1);
+    expect(h.state().engine).toMatchObject({
+      status: 'error',
+      error: { code: 'audio-engine-failed' },
+    });
+
+    await h.actions.startAudio();
+    expect(h.engine.callsNamed('start')).toHaveLength(2);
+    expect(h.state().engine).toMatchObject({ status: 'running', error: null });
+    expect(h.state().previewPlaying).toBe(false);
+  });
+
+  it('restarts live audio with a device picked while it is broken', async () => {
+    const h = createStudioHarness({ ...IN_STUDIO, mode: 'audio' });
+    await h.actions.initialize();
+    h.engine.breakDown(PROCESSOR_FAILED);
+    await h.actions.selectMicrophone('mic-2');
+    expect(h.engine.callsNamed('setMicrophone')).toEqual([]);
+    expect(h.engine.callsNamed('start').at(-1)).toEqual([
+      { microphoneId: 'mic-2', outputId: null },
+    ]);
+    expect(h.state().engine.status).toBe('running');
+  });
+
+  it('shows an audio processor that fails right at the start as a problem', async () => {
+    const h = createStudioHarness({ ...IN_STUDIO, mode: 'audio' });
+    const start = h.engine.start.bind(h.engine);
+    h.engine.start = async (options) => {
+      const result = await start(options);
+      h.engine.breakDown(PROCESSOR_FAILED);
+      return result;
+    };
+    await h.actions.initialize();
+    expect(h.state().engine).toMatchObject({
+      status: 'error',
+      error: { code: 'audio-engine-failed' },
+    });
   });
 });
 
