@@ -1,0 +1,95 @@
+.meter {
+  --meter-thickness: 6px;
+
+  position: relative;
+  border-radius: var(--radius-full);
+  background: var(--track-fill);
+  /* Scoped, so 60 updates a second never repaint anything outside the meter. */
+  contain: layout style;
+}
+
+.sm {
+  --meter-thickness: 4px;
+}
+
+.md {
+  --meter-thickness: 6px;
+}
+
+/* Fills the space left over in a row (next to an icon or a label), or the full width of a
+   block or grid cell. */
+.horizontal {
+  flex: 1 1 0;
+  min-width: 48px;
+  height: var(--meter-thickness);
+}
+
+.vertical {
+  flex: none;
+  width: var(--meter-thickness);
+  height: 100%;
+  min-height: 48px;
+}
+
+/* The full-length gradient is revealed by clipping: the warm end only ever shows when the
+   signal actually gets there. */
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.horizontal .fill {
+  background: linear-gradient(
+    90deg,
+    var(--holo-lilac) 0%,
+    var(--holo-ice) 40%,
+    var(--holo-mint) 78%,
+    var(--color-warning) 92%,
+    var(--color-danger) 100%
+  );
+  clip-path: inset(0 calc((1 - var(--meter-level)) * 100%) 0 0 round 999px);
+}
+
+.vertical .fill {
+  background: linear-gradient(
+    0deg,
+    var(--holo-lilac) 0%,
+    var(--holo-ice) 40%,
+    var(--holo-mint) 78%,
+    var(--color-warning) 92%,
+    var(--color-danger) 100%
+  );
+  clip-path: inset(calc((1 - var(--meter-level)) * 100%) 0 0 0 round 999px);
+}
+
+.peak {
+  position: absolute;
+  border-radius: 1px;
+  background: var(--thumb-fill);
+  opacity: 0;
+  transition: opacity var(--duration-base) ease;
+}
+
+.meter[data-active] .peak {
+  opacity: 0.9;
+}
+
+.meter[data-hot] .peak {
+  background: var(--color-danger);
+  opacity: 1;
+}
+
+.horizontal .peak {
+  top: -1px;
+  bottom: -1px;
+  left: calc(var(--meter-peak) * (100% - 2px));
+  width: 2px;
+}
+
+.vertical .peak {
+  right: -1px;
+  bottom: calc(var(--meter-peak) * (100% - 2px));
+  left: -1px;
+  height: 2px;
+}
