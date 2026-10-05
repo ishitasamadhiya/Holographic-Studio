@@ -1,0 +1,5 @@
+.sections {
+  display: grid;
+  gap: var(--space-6);
+  padding-top: var(--space-2);
+}

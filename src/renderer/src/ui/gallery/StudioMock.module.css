@@ -1,0 +1,153 @@
+.studio {
+  --studio-edge: var(--space-5);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-canvas);
+  isolation: isolate;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+/* ── Top bar ───────────────────────────────────────────────────────────── */
+.topBar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: var(--z-floating);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  height: 60px;
+  padding: 0 var(--studio-edge) 0 var(--titlebar-safe-left);
+}
+
+.topStart,
+.topCenter,
+.topEnd {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.topEnd {
+  justify-content: flex-end;
+}
+
+/* Pretend window buttons where macOS draws the real ones (x = 18, y = 18). */
+.trafficLights {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+.trafficLights i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+  box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.2);
+}
+
+.trafficLights i:nth-child(2) {
+  background: #febc2e;
+}
+
+.trafficLights i:nth-child(3) {
+  background: #28c840;
+}
+
+/* ── Edge indicators ───────────────────────────────────────────────────── */
+.edge {
+  position: absolute;
+  top: 50%;
+  z-index: var(--z-floating);
+  display: grid;
+  gap: var(--space-3);
+  transform: translateY(-50%);
+}
+
+.edgeLeft {
+  left: var(--studio-edge);
+}
+
+.edgeRight {
+  right: var(--studio-edge);
+}
+
+/* ── Transport ─────────────────────────────────────────────────────────── */
+.transport {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  z-index: var(--z-floating);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: var(--space-5);
+  width: min(460px, calc(100% - 2 * var(--studio-edge)));
+  padding: 8px var(--space-5);
+  transform: translateX(-50%);
+}
+
+.transportStart {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding-left: var(--space-2);
+}
+
+.transportEnd {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-rounded);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.clockDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.4);
+  transition: background-color var(--duration-base) ease;
+}
+
+.clock[data-phase='recording'] .clockDot {
+  background: var(--color-record);
+  box-shadow: 0 0 8px var(--color-record-glow);
+}
+
+.clock[data-phase='paused'] {
+  color: var(--color-text-secondary);
+}
+
+.inputLevel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 132px;
+  color: var(--color-text-secondary);
+}

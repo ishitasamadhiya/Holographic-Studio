@@ -1,0 +1,68 @@
+.root {
+  height: 100%;
+}
+
+/* ── Components view ───────────────────────────────────────────────────── */
+/* Taller than the window on purpose: the document itself scrolls. */
+.page {
+  min-height: 100%;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-floating);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-right: var(--space-5);
+  border-bottom: var(--hairline) solid var(--color-divider);
+  background: rgb(8 8 11 / 0.72);
+  backdrop-filter: blur(var(--blur-md)) saturate(1.6);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title {
+  font-size: var(--text-lg);
+}
+
+/* Centred against the window (100vw) rather than the scrollable area, so the sections stay
+   put whether or not the document scrollbar is showing. Screenshot tools hide it while they
+   capture, and a layout that moved with it came out shifted. */
+.sections {
+  --sections-width: 1180px;
+
+  display: grid;
+  gap: var(--space-16);
+  max-width: var(--sections-width);
+  margin-left: max(0px, calc((100vw - var(--sections-width)) / 2));
+  padding: var(--space-10) var(--space-8) var(--space-16);
+}
+
+/* The composed mocks are shown at the app's default window proportions (1280 × 800). */
+.frame {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: var(--hairline) solid rgb(255 255 255 / 0.14);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Full-window views ─────────────────────────────────────────────────── */
+.fullView {
+  position: relative;
+  height: 100%;
+}
+
+.back {
+  position: absolute;
+  bottom: var(--space-5);
+  left: var(--space-5);
+  z-index: var(--z-floating);
+}

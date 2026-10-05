@@ -1,0 +1,113 @@
+.section {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.sectionHeader {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.sectionTitle {
+  font-size: var(--text-xl);
+}
+
+.sectionDescription {
+  max-width: 72ch;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-md);
+}
+
+/* ── Stage ─────────────────────────────────────────────────────────────── */
+.stage {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-xl);
+  isolation: isolate;
+}
+
+.photo {
+  background: #cdb8a3;
+}
+
+.white {
+  background: #fff;
+}
+
+.canvas {
+  background: var(--color-canvas-raised);
+}
+
+.stagePhoto {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+}
+
+.stageContent {
+  position: relative;
+  padding: var(--space-8);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-8) var(--space-6);
+}
+
+.column {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  align-items: start;
+  gap: var(--space-6);
+}
+
+/* ── Specimen ──────────────────────────────────────────────────────────── */
+.specimen {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.specimenWide {
+  flex: 1 1 100%;
+  justify-items: stretch;
+}
+
+.specimenBody {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.specimenWide .specimenBody {
+  display: block;
+}
+
+/* Captions sit on their own dark pill so they stay readable on every backdrop. */
+.specimenLabel {
+  justify-self: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgb(0 0 0 / 0.55);
+  color: rgb(255 255 255 / 0.82);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}

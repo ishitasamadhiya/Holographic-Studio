@@ -1,0 +1,18 @@
+.meters {
+  display: grid;
+  gap: var(--space-4);
+  width: 340px;
+}
+
+.meterRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+}
+
+.verticalMeters {
+  display: flex;
+  gap: var(--space-4);
+  height: 164px;
+}

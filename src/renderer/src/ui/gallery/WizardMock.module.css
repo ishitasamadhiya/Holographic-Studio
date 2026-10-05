@@ -1,0 +1,94 @@
+.wizard {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  padding: var(--space-8);
+  overflow: hidden;
+  background: var(--color-canvas);
+  isolation: isolate;
+}
+
+/* A faint iridescent haze behind the card: present, never loud. */
+.aurora {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 50% at 22% 12%, rgb(var(--holo-lilac-rgb) / 0.2), transparent 70%),
+    radial-gradient(50% 45% at 82% 20%, rgb(var(--holo-ice-rgb) / 0.17), transparent 70%),
+    radial-gradient(60% 50% at 55% 100%, rgb(var(--holo-mint-rgb) / 0.13), transparent 70%);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-6);
+  width: min(560px, 100%);
+  padding: var(--space-6) var(--space-8) var(--space-6);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brandName {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.stepCount {
+  margin-left: auto;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.intro {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.title {
+  font-size: var(--text-3xl);
+}
+
+.lead {
+  max-width: 46ch;
+  color: var(--color-text-secondary);
+  font-size: var(--text-lg);
+  line-height: var(--leading-normal);
+}
+
+.files {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-top: var(--space-2);
+}
+
+.footer > :first-child {
+  justify-self: start;
+  margin-left: calc(var(--space-2) * -1);
+}
+
+.footer > :last-child {
+  justify-self: end;
+}
+
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
