@@ -104,3 +104,24 @@ export function midiToHz(midi: number): number {
 export function describeKey(key: KeyEstimate): string {
   return `${PITCH_CLASS_NAMES[((key.tonic % 12) + 12) % 12]} ${key.mode}`;
 }
+
+/** Structural check used when loading a cached analysis from disk. */
+export function isReferenceAnalysis(value: unknown): value is ReferenceAnalysis {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Partial<ReferenceAnalysis>;
+  return (
+    candidate.schemaVersion === REFERENCE_ANALYSIS_SCHEMA_VERSION &&
+    typeof candidate.durationSec === 'number' &&
+    typeof candidate.tuningCents === 'number' &&
+    typeof candidate.contour === 'object' &&
+    candidate.contour !== null &&
+    Array.isArray(candidate.contour.f0Hz) &&
+    Array.isArray(candidate.contour.confidence) &&
+    Array.isArray(candidate.notes) &&
+    typeof candidate.key === 'object' &&
+    candidate.key !== null &&
+    typeof candidate.key.tonic === 'number' &&
+    (candidate.key.mode === 'major' || candidate.key.mode === 'minor') &&
+    (candidate.quality === 'good' || candidate.quality === 'fair' || candidate.quality === 'poor')
+  );
+}
