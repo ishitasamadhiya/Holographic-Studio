@@ -221,12 +221,33 @@ describe('starting a take', () => {
     expect(h.clock.pendingTimerCount).toBe(0);
   });
 
+  it('does not open a take when live audio broke during the countdown', async () => {
+    const h = setup({ countdown: true });
+    const starting = h.controller.start();
+    await h.clock.advance(1000);
+    h.engine.fault = createAppError('audio-engine-failed', 'The vocal chain failed');
+    await h.clock.advance(2000);
+    await starting;
+    expect(h.state).toMatchObject({ status: 'idle', error: { code: 'audio-engine-failed' } });
+    expect(h.api.callsNamed('take.begin')).toHaveLength(0);
+  });
+
   it('refuses to start without a running engine or a camera in video mode', async () => {
     const h = setup();
     h.engine.running = false;
     await h.controller.start();
     expect(h.state.status).toBe('idle');
     expect(h.notices).toHaveLength(1);
+
+    // Running, but the microphone is gone: nothing could be recorded.
+    const broken = setup();
+    broken.engine.fault = createAppError('device-disconnected', 'The microphone track ended');
+    await broken.controller.start();
+    expect(broken.state.status).toBe('idle');
+    expect(broken.notices).toEqual([
+      { kind: 'warning', message: createAppError('device-disconnected').message },
+    ]);
+    expect(broken.api.callsNamed('take.begin')).toHaveLength(0);
 
     const noCamera = setup({ camera: null });
     await noCamera.controller.start();

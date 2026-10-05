@@ -163,10 +163,11 @@ export class RecordingController {
 
   /** idle → countdown (when enabled) → recording. Ignored in any other state. */
   start(): Promise<void> {
-    const { engine, getSettings, getState, notify, setState } = this.options;
+    const { getSettings, getState, notify, setState } = this.options;
     if (this.starting || getState().status !== 'idle') return Promise.resolve();
-    if (!engine.isRunning) {
-      notify('warning', createAppError('audio-engine-failed').message);
+    const audioProblem = this.audioProblem();
+    if (audioProblem) {
+      notify('warning', audioProblem.message);
       return Promise.resolve();
     }
     if (getSettings().mode === 'video') {
@@ -379,6 +380,12 @@ export class RecordingController {
   // Starting
   // ---------------------------------------------------------------------------------------
 
+  /** Why live audio cannot be recorded right now, or null when it can. */
+  private audioProblem(): AppError | null {
+    const { engine } = this.options;
+    return engine.isRunning ? engine.fault : createAppError('audio-engine-failed');
+  }
+
   /** Why a video take cannot start right now, or null when it can. */
   private videoBlocker(): AppError | null {
     const { getCameraError, getCameraFeed, videoRecorders } = this.options;
@@ -469,7 +476,8 @@ export class RecordingController {
     const { api, engine, getBackingTrackName, getCameraFeed, getSettings, videoRecorders } =
       this.options;
     // The countdown took a while: the devices may have changed under it.
-    if (!engine.isRunning) throw createAppError('audio-engine-failed');
+    const audioProblem = this.audioProblem();
+    if (audioProblem) throw audioProblem;
     const { mode } = getSettings();
     const feed = mode === 'video' ? getCameraFeed() : null;
     const mimeType = feed ? pickRecorderMimeType(videoRecorders.isTypeSupported) : null;
