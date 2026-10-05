@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "lib": ["ES2023"],
+    "types": ["audioworklet"]
+  },
+  "include": ["src/renderer/src/audio/worklets/**/*"]
+}

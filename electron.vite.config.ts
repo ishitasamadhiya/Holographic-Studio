@@ -42,6 +42,7 @@ export default defineConfig({
           // Developer-only pages (never linked from the app UI); see docs/TESTING.md.
           gallery: resolve(__dirname, 'src/renderer/gallery.html'),
           'tracking-probe': resolve(__dirname, 'src/renderer/tracking-probe.html'),
+          'engine-probe': resolve(__dirname, 'src/renderer/engine-probe.html'),
         },
       },
     },
