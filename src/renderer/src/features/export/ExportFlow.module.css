@@ -1,0 +1,30 @@
+.error {
+  text-align: left;
+}
+
+.fileName {
+  padding: var(--space-2) var(--space-3);
+  overflow: hidden;
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--layer-1);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Two secondary actions side by side, the way forward underneath across the full width. */
+.savedActions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.savedActions > * {
+  width: 100%;
+}
+
+.savedActions > :last-child {
+  grid-column: 1 / -1;
+}
