@@ -1,0 +1,44 @@
+/* The button lines up with the middle of the record button (see RecordBar.module.css). */
+.toggle {
+  position: absolute;
+  right: var(--studio-edge);
+  bottom: var(--studio-controls-bottom);
+  z-index: var(--z-floating);
+}
+
+.floating {
+  position: absolute;
+  right: var(--studio-edge);
+  bottom: calc(var(--studio-controls-bottom) + 44px + var(--space-3));
+  z-index: var(--z-floating);
+  max-height: calc(
+    100% - var(--titlebar-height) - var(--studio-controls-bottom) - 44px - 2 * var(--space-3)
+  );
+  transform-origin: bottom right;
+  animation: open var(--duration-base) var(--ease-out);
+}
+
+/* Centred on the right between the top bar and the record bar, open for good. */
+.docked {
+  position: absolute;
+  top: var(--titlebar-height);
+  right: var(--studio-edge);
+  bottom: var(--studio-dock-bottom);
+  z-index: var(--z-floating);
+  height: fit-content;
+  max-height: calc(100% - var(--titlebar-height) - var(--studio-dock-bottom));
+  margin-block: auto;
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating {
+    animation: none;
+  }
+}
