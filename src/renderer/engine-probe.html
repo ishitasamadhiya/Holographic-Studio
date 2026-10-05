@@ -3,7 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Same policy as the app itself, so the probe proves the worklets load under it. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob: mediastream:; connect-src 'self' ws: blob: data:"
+    />
     <title>Holographic Studio — Audio Engine Probe</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 56px 24px 24px;
+        background: #08080b;
+        color: #e8e8f0;
+        font:
+          13px/1.5 ui-monospace,
+          SFMono-Regular,
+          Menlo,
+          monospace;
+      }
+      button {
+        margin-right: 8px;
+        padding: 6px 12px;
+        font: inherit;
+        color: inherit;
+        background: #1c1c26;
+        border: 1px solid #34344a;
+        border-radius: 8px;
+      }
+      .readout {
+        margin: 16px 0 0;
+        white-space: pre;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
