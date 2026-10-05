@@ -1,0 +1,61 @@
+.toggle {
+  --toggle-width: 40px;
+  --toggle-height: 24px;
+  --toggle-gap: 2px;
+  --toggle-edge: inset 0 0 0 0.5px rgb(255 255 255 / 0.14);
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--toggle-width);
+  height: var(--toggle-height);
+  border-radius: var(--radius-full);
+  background: var(--track-fill);
+  box-shadow: var(--toggle-edge);
+  transition:
+    background-color var(--duration-base) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.toggle:focus-visible {
+  box-shadow: var(--toggle-edge), var(--focus-halo);
+}
+
+.toggle:disabled {
+  opacity: 0.4;
+}
+
+/* The gradient fades in on top of the grey track (gradients cannot be transitioned). */
+.toggle::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--holo-gradient);
+  opacity: 0;
+  transition: opacity var(--duration-base) ease;
+}
+
+.toggle[aria-checked='true']::before {
+  opacity: 1;
+}
+
+.thumb {
+  position: absolute;
+  top: var(--toggle-gap);
+  left: var(--toggle-gap);
+  width: calc(var(--toggle-height) - 2 * var(--toggle-gap));
+  height: calc(var(--toggle-height) - 2 * var(--toggle-gap));
+  border-radius: 50%;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
+  transition:
+    transform var(--duration-base) var(--ease-spring),
+    background-color var(--duration-base) ease;
+}
+
+/* The accent gradient is pale, so the "on" thumb turns dark to stay clearly visible on it. */
+.toggle[aria-checked='true'] .thumb {
+  background: var(--color-canvas-raised);
+  transform: translateX(calc(var(--toggle-width) - var(--toggle-height)));
+}

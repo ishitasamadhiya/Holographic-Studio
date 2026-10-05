@@ -1,0 +1,77 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+}
+
+.select {
+  appearance: none;
+  width: 100%;
+  height: var(--control-height-md);
+  padding: 0 32px 0 12px;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--layer-2);
+  box-shadow: var(--glass-edge);
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  transition:
+    background-color var(--duration-fast) ease,
+    opacity var(--duration-fast) ease;
+}
+
+.withIcon .select {
+  padding-left: 34px;
+}
+
+.select:hover:not(:disabled) {
+  background: var(--layer-3);
+}
+
+.select:focus-visible {
+  box-shadow: var(--glass-edge), var(--focus-halo);
+}
+
+/* Set by a Field that is showing an error. */
+.select[aria-invalid='true'] {
+  border-color: rgb(var(--color-danger-rgb) / 0.55);
+}
+
+.select:disabled {
+  opacity: 0.5;
+}
+
+.root[data-placeholder] .select {
+  color: var(--color-text-tertiary);
+}
+
+/* Windows draws the open list itself and needs explicit colours; macOS uses a native menu. */
+.select option {
+  background: var(--color-canvas-raised);
+  color: var(--color-text-primary);
+}
+
+.icon,
+.chevron {
+  position: absolute;
+  pointer-events: none;
+  color: var(--color-text-secondary);
+}
+
+.icon {
+  left: 11px;
+  display: inline-flex;
+}
+
+.icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+.chevron {
+  right: 11px;
+}

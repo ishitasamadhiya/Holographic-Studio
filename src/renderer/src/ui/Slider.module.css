@@ -1,0 +1,139 @@
+.root {
+  --slider-thumb: 18px;
+
+  display: grid;
+  gap: var(--space-1);
+  min-width: 120px;
+}
+
+/* No visible label: the track and the readout share one line (used in form rows). */
+.inline {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.root[data-disabled] {
+  opacity: 0.42;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.icon {
+  display: inline-flex;
+  align-self: center;
+}
+
+.icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.value {
+  min-width: 4ch;
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The focusable hit area: taller than the visible track. */
+.control {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  border-radius: var(--radius-full);
+  touch-action: none;
+}
+
+/* The focus ring is drawn around the thumb (below), not around the whole hit area. */
+.control:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--track-fill);
+}
+
+/* The gradient spans the whole track and is revealed by clipping, so its colours stay put
+   while the value changes instead of being squeezed into the filled part. */
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--holo-gradient);
+  /* Ends under the centre of the thumb (see .rail). */
+  clip-path: inset(
+    0 calc(100% - var(--slider-thumb) / 2 - var(--slider-fraction) * (100% - var(--slider-thumb))) 0
+      0 round 999px
+  );
+}
+
+/* The thumb's centre travels along the rail, which is the track shortened by half a thumb at
+   each end: the track lines up with the labels above it and the thumb never overhangs. */
+.rail {
+  position: absolute;
+  inset: 0 calc(var(--slider-thumb) / 2);
+}
+
+.tick {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: calc(var(--slider-unity) * 100%);
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--tick-fill);
+}
+
+.thumb {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--slider-fraction) * 100%);
+  width: var(--slider-thumb);
+  height: var(--slider-thumb);
+  margin: calc(var(--slider-thumb) / -2) 0 0 calc(var(--slider-thumb) / -2);
+  border-radius: 50%;
+  background: var(--thumb-fill);
+  box-shadow: var(--shadow-thumb);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.control:hover .thumb {
+  transform: scale(1.08);
+}
+
+.control:active .thumb {
+  transform: scale(0.96);
+}
+
+.control:focus-visible .thumb {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: var(--shadow-thumb), var(--focus-halo);
+}
+
+.root[data-disabled] .thumb {
+  transform: none;
+}

@@ -1,0 +1,94 @@
+.group {
+  --segmented-height: var(--control-height-md);
+  --segmented-padding: 3px;
+  --segmented-radius: var(--radius-full);
+
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: repeat(var(--segment-count), minmax(0, 1fr));
+  flex: none;
+  /* Stays compact even where a grid or column layout would stretch it. */
+  width: fit-content;
+  max-width: 100%;
+  height: var(--segmented-height);
+  padding: var(--segmented-padding);
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--segmented-radius);
+  background: var(--layer-1);
+  backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-edge);
+}
+
+.sm {
+  --segmented-height: var(--control-height-sm);
+  --segmented-padding: 2px;
+}
+
+.md {
+  --segmented-height: var(--control-height-md);
+}
+
+.fullWidth {
+  display: grid;
+  width: 100%;
+}
+
+.group[aria-disabled='true'] {
+  opacity: 0.42;
+}
+
+/* The highlight is one element that slides between equal-width segments. */
+.thumb {
+  position: absolute;
+  top: var(--segmented-padding);
+  bottom: var(--segmented-padding);
+  left: var(--segmented-padding);
+  width: calc((100% - 2 * var(--segmented-padding)) / var(--segment-count));
+  border-radius: var(--radius-full);
+  background: var(--layer-4);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 1px 3px rgb(0 0 0 / 0.3);
+  transform: translateX(calc(var(--segment-index) * 100%));
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.segment {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  transition: color var(--duration-fast) ease;
+}
+
+.sm .segment {
+  padding: 0 11px;
+  font-size: var(--text-sm);
+}
+
+.segment:hover:not(:disabled),
+.segment[aria-checked='true'] {
+  color: var(--color-text-primary);
+}
+
+.segment:disabled {
+  color: var(--color-text-disabled);
+}
+
+.icon {
+  display: inline-flex;
+}
+
+.icon svg {
+  width: 15px;
+  height: 15px;
+}
