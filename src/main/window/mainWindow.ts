@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { BrowserWindow, session, shell } from 'electron';
+import { BrowserWindow, powerSaveBlocker, session, shell } from 'electron';
 import { isE2E } from '../testEnvironment';
 import { rendererUrl } from './appProtocol';
 
@@ -37,6 +37,14 @@ export function createMainWindow(): BrowserWindow {
     // Tests must not steal keyboard focus from whatever the developer is doing.
     if (isE2E()) window.showInactive();
     else window.show();
+  });
+
+  // A singer performing with their hands does not touch the keyboard or mouse for minutes.
+  // If the display went to sleep the preview, hand tracking and the camera recording would
+  // stall mid-take, so the display stays awake for as long as the studio window is open.
+  const keepAwake = powerSaveBlocker.start('prevent-display-sleep');
+  window.once('closed', () => {
+    if (powerSaveBlocker.isStarted(keepAwake)) powerSaveBlocker.stop(keepAwake);
   });
 
   window.webContents.setWindowOpenHandler(({ url }) => {

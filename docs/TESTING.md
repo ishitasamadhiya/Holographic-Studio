@@ -340,6 +340,14 @@ Tick each box only when the **Expected** result happens.
 - [ ] Settings → Advanced → **Run setup again**. **Expected:** the wizard opens with the current
       settings selected.
 
+## If end-to-end tests fail only when you are away
+
+Chromium stops drawing frames when the display is asleep or the screen is locked. The tests
+that watch the live preview, the level meter and hand tracking then see almost no frames and
+fail (for example "wizard mic meter: 4 frames" or an indicator stuck on "No hand"). The test
+launcher wakes a sleeping display on macOS, but it cannot unlock the screen: run the
+end-to-end suite with the Mac unlocked.
+
 ## Checking the packaged app
 
 After `npm run dist`, this records and exports a three-second take inside the packaged

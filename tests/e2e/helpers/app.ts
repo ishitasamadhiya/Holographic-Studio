@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -24,8 +25,18 @@ export interface LaunchedApp {
   close: () => Promise<void>;
 }
 
+/**
+ * Chromium stops drawing frames while the display is asleep, which stalls the preview and
+ * hand tracking and fails the tests that watch them. On macOS this wakes the display the same
+ * way a key press would; it cannot help when the screen is locked.
+ */
+function wakeDisplay(): void {
+  if (process.platform === 'darwin') spawnSync('caffeinate', ['-u', '-t', '1'], { timeout: 5000 });
+}
+
 /** Launches the built app (run `npx electron-vite build` first) with synthetic devices. */
 export async function launchApp(options: LaunchOptions = {}): Promise<LaunchedApp> {
+  wakeDisplay();
   const userDataDir = options.userDataDir ?? mkdtempSync(join(tmpdir(), 'holo-e2e-'));
   const outDir = process.env.HOLO_OUT_DIR ?? 'out';
 
