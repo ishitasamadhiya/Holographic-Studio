@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test';
 import { DEFAULT_SETTINGS } from '../../src/shared/settings';
 import { launchApp, type LaunchedApp } from './helpers/app';
+import { stubOpenDialog, stubSaveDialog } from './helpers/studioDriver';
 import {
   frameBrightness,
   probeMedia,
@@ -23,24 +24,12 @@ import {
   videoFrameTimes,
 } from './helpers/takeFixtures';
 
-/** Makes the native save dialog "return" the given path (null = the user cancelled). */
-async function stubSaveDialog(app: ElectronApplication, filePath: string | null): Promise<void> {
-  await app.evaluate(({ dialog }, chosenPath) => {
-    const stub = async () => ({ canceled: chosenPath === null, filePath: chosenPath ?? '' });
-    dialog.showSaveDialog = stub as typeof dialog.showSaveDialog;
-  }, filePath);
-}
-
-/** Makes the native open dialog "return" the given path (null = the user cancelled). */
-async function stubOpenDialog(app: ElectronApplication, filePath: string | null): Promise<void> {
-  await app.evaluate(({ dialog }, chosenPath) => {
-    const stub = async () => ({
-      canceled: chosenPath === null,
-      filePaths: chosenPath === null ? [] : [chosenPath],
-    });
-    dialog.showOpenDialog = stub as typeof dialog.showOpenDialog;
-  }, filePath);
-}
+/**
+ * The page these tests run in. Any page of the app gets the same window.holo bridge; this
+ * developer page does not start the app itself, whose setup wizard would otherwise open the
+ * microphone and write settings while the tests below are checking them.
+ */
+const BRIDGE_PAGE = 'gallery.html';
 
 /** The recording types the app may ask MediaRecorder for, best first. */
 const VIDEO_MIME_TYPES = [
@@ -102,7 +91,7 @@ test.describe('window.holo in the running app', () => {
   let workDir: string;
 
   test.beforeAll(async () => {
-    launched = await launchApp();
+    launched = await launchApp({ page: BRIDGE_PAGE });
     workDir = mkdtempSync(join(tmpdir(), 'holo-e2e-ipc-'));
   });
 
@@ -621,7 +610,7 @@ for (const [wayToQuit, quit] of WAYS_TO_QUIT) {
   test(`${wayToQuit} during an export leaves no half-written video behind`, async () => {
     const userDataDir = mkdtempSync(join(tmpdir(), 'holo-e2e-quit-'));
     const saveDir = mkdtempSync(join(tmpdir(), 'holo-e2e-quit-save-'));
-    const { app, page } = await launchApp({ userDataDir });
+    const { app, page } = await launchApp({ page: BRIDGE_PAGE, userDataDir });
     let hasExited = false;
     const exited = new Promise<void>((resolve) => {
       app.process().once('exit', () => {
@@ -684,7 +673,7 @@ for (const [wayToQuit, quit] of WAYS_TO_QUIT) {
 test('settings survive an app relaunch', async () => {
   const userDataDir = mkdtempSync(join(tmpdir(), 'holo-e2e-settings-'));
   try {
-    const first = await launchApp({ userDataDir });
+    const first = await launchApp({ page: BRIDGE_PAGE, userDataDir });
     let updated;
     try {
       expect(await first.page.evaluate(() => window.holo.settings.load())).toEqual(
@@ -710,7 +699,7 @@ test('settings survive an app relaunch', async () => {
       await first.close();
     }
 
-    const second = await launchApp({ userDataDir });
+    const second = await launchApp({ page: BRIDGE_PAGE, userDataDir });
     try {
       expect(await second.page.evaluate(() => window.holo.settings.load())).toEqual(updated);
       expect(await second.page.evaluate(() => window.holo.settings.reset())).toEqual(

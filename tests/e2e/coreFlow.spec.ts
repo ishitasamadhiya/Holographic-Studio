@@ -1,19 +1,14 @@
 // The product's definition of done, headless: the real app, driven through window.__holoTest
 // (the running Studio) with Chromium's synthetic camera and a synthesized voice as the
-// microphone. Every take is exported and the MP4 is checked with ffprobe and by listening to
-// its audio.
-//
-// Chromium's fake microphone cannot play a WAV while the audio service is sandboxed (it only
-// beeps), so the voice is a tone generated in the page and handed to the app as the stream
-// getUserMedia returns for audio, before the app opens the microphone.
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+// microphone (see helpers/studioDriver.ts). Every take is exported and the MP4 is checked
+// with ffprobe and by listening to its audio. appFlow.spec.ts drives the same app through
+// its screens instead.
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test';
-import { MANIFEST_FILE } from '../../src/main/takes/takeFiles';
 import type { Studio, StudioActions, StudioState } from '../../src/renderer/src/state/studioTypes';
-import type { TakeManifest } from '../../src/shared/take';
-import { launchApp, type LaunchedApp } from './helpers/app';
+import type { LaunchedApp } from './helpers/app';
 import {
   bandPower,
   crossCorrelate,
@@ -26,6 +21,18 @@ import {
   type CoreSongs,
 } from './helpers/coreFixtures';
 import { createFakeCameraClip, handFixture } from './helpers/fakeCamera';
+import {
+  launchStudioApp,
+  microphoneTracks,
+  plugMicrophoneIn,
+  readLive,
+  readState,
+  readTakeManifest,
+  stubOpenDialog,
+  stubSaveDialog,
+  takeFolders,
+  unplugMicrophone,
+} from './helpers/studioDriver';
 import { probeMedia } from './helpers/takeFixtures';
 
 interface TestWindow {
@@ -52,14 +59,6 @@ test.afterAll(() => {
   rmSync(workDir, { recursive: true, force: true });
 });
 
-async function waitForStudio(page: Page): Promise<void> {
-  await page.waitForFunction(() => (window as TestWindow).__holoTest !== undefined);
-}
-
-function readState(page: Page): Promise<StudioState> {
-  return page.evaluate(() => (window as TestWindow).__holoTest!.store.getState());
-}
-
 /** Calls a Studio action in the page and waits for it to finish. */
 async function act<Name extends keyof StudioActions>(
   page: Page,
@@ -78,76 +77,8 @@ async function act<Name extends keyof StudioActions>(
   );
 }
 
-/**
- * Makes every microphone the app opens a steady "sung" tone at MIC_HZ with a slow tremolo
- * (so the input meter moves). Camera requests still reach Chromium's synthetic camera.
- */
-async function useSyntheticVoice(page: Page): Promise<void> {
-  await page.evaluate((hz) => {
-    const devices = navigator.mediaDevices;
-    const nativeGetUserMedia = devices.getUserMedia.bind(devices);
-    let context: AudioContext | null = null;
-    devices.getUserMedia = async (constraints) => {
-      if (!constraints?.audio) return nativeGetUserMedia(constraints);
-      context ??= new AudioContext({ sampleRate: 48000 });
-      await context.resume();
-      const tone = new OscillatorNode(context, { frequency: hz });
-      const level = new GainNode(context, { gain: 0.22 });
-      const tremolo = new OscillatorNode(context, { frequency: 1.5 });
-      const depth = new GainNode(context, { gain: 0.12 });
-      const destination = new MediaStreamAudioDestinationNode(context, { channelCount: 1 });
-      tremolo.connect(depth).connect(level.gain);
-      tone.connect(level).connect(destination);
-      tone.start();
-      tremolo.start();
-      return destination.stream;
-    };
-  }, MIC_HZ);
-}
-
-/** Gives the Studio a <video> to show the camera in, as the preview screens do. */
-async function attachPreview(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    const video = document.createElement('video');
-    video.style.cssText = 'position:fixed;right:0;bottom:0;width:160px;height:90px';
-    document.body.append(video);
-    (window as TestWindow).__holoTest!.actions.attachPreview(video);
-  });
-}
-
-async function stubSaveDialog(app: ElectronApplication, filePath: string | null): Promise<void> {
-  await app.evaluate(({ dialog }, chosenPath) => {
-    const stub = async () => ({ canceled: chosenPath === null, filePath: chosenPath ?? '' });
-    dialog.showSaveDialog = stub as typeof dialog.showSaveDialog;
-  }, filePath);
-}
-
-async function stubOpenDialog(app: ElectronApplication, filePath: string | null): Promise<void> {
-  await app.evaluate(({ dialog }, chosenPath) => {
-    const stub = async () => ({
-      canceled: chosenPath === null,
-      filePaths: chosenPath === null ? [] : [chosenPath],
-    });
-    dialog.showOpenDialog = stub as typeof dialog.showOpenDialog;
-  }, filePath);
-}
-
 async function expectStatus(page: Page, status: StudioState['recording']['status']): Promise<void> {
   await expect.poll(async () => (await readState(page)).recording.status).toBe(status);
-}
-
-/** The manifest of the one temporary take the app keeps. */
-function readTakeManifest(userDataDir: string): TakeManifest {
-  const [takeId] = takeFolders(userDataDir);
-  if (!takeId) throw new Error('There is no take folder');
-  const path = join(userDataDir, 'takes', takeId, MANIFEST_FILE);
-  return JSON.parse(readFileSync(path, 'utf8')) as TakeManifest;
-}
-
-/** Folders of temporary takes the app still keeps. */
-function takeFolders(userDataDir: string): string[] {
-  const takesDir = join(userDataDir, 'takes');
-  return existsSync(takesDir) ? readdirSync(takesDir) : [];
 }
 
 interface RecordedTake {
@@ -201,18 +132,17 @@ async function saveTake(app: ElectronApplication, page: Page, fileName: string) 
 test('a fresh profile starts in the wizard; onboarding opens the studio and is remembered', async () => {
   const userDataDir = mkdtempSync(join(tmpdir(), 'holo-core-profile-'));
   try {
-    let launched = await launchApp({ userDataDir });
+    let launched = await launchStudioApp({ userDataDir });
     try {
       const { page } = launched;
-      await waitForStudio(page);
       await expect.poll(async () => (await readState(page)).phase).toBe('wizard');
+      // The wizard's first step opens the microphone, without monitoring (no headphones yet).
+      await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
       let state = await readState(page);
-      expect(state.engine.status).toBe('off');
+      expect(state.settings.audio.monitoringEnabled).toBe(false);
       expect(state.camera.status).toBe('off');
       expect(state.devices.microphones.every((device) => device.id !== 'default')).toBe(true);
 
-      await useSyntheticVoice(page);
-      await attachPreview(page);
       await act(page, 'completeOnboarding');
       await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
       await expect.poll(async () => (await readState(page)).camera.status).toBe('running');
@@ -247,10 +177,9 @@ test('a fresh profile starts in the wizard; onboarding opens the studio and is r
       await launched.close();
     }
 
-    launched = await launchApp({ userDataDir });
+    launched = await launchStudioApp({ userDataDir });
     try {
       const { page } = launched;
-      await waitForStudio(page);
       await expect.poll(async () => (await readState(page)).phase).toBe('studio');
       await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
     } finally {
@@ -267,13 +196,10 @@ test.describe.serial('recording and exporting', () => {
   let page: Page;
 
   test.beforeAll(async () => {
-    launched = await launchApp();
+    launched = await launchStudioApp();
     ({ app, page } = launched);
-    await waitForStudio(page);
     await expect.poll(async () => (await readState(page)).phase).toBe('wizard');
-    await useSyntheticVoice(page);
     await act(page, 'updateSettings', { recording: { countdownEnabled: false } });
-    await attachPreview(page);
     await act(page, 'completeOnboarding');
     await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
     await expect.poll(async () => (await readState(page)).camera.status).toBe('running');
@@ -452,6 +378,37 @@ test.describe.serial('recording and exporting', () => {
     expect((await readState(page)).recording.status).toBe('idle');
     await expect.poll(() => takeFolders(launched.userDataDir)).toEqual([]);
   });
+
+  test('a microphone that goes away keeps the take, and live audio comes back with the next one', async () => {
+    await act(page, 'startRecording');
+    await expectStatus(page, 'recording');
+    await page.waitForTimeout(1500);
+    await unplugMicrophone(page, true);
+    await expectStatus(page, 'review');
+    const kept = await readState(page);
+    expect(kept.recording.takeDurationSec).toBeGreaterThan(1);
+    expect(kept.notices.some((notice) => notice.message.includes('your take was kept'))).toBe(true);
+    // With no microphone to open, live audio stays off and no take can start.
+    await expect.poll(async () => (await readState(page)).engine.error?.code).toBe('no-microphone');
+    expect((await readState(page)).engine.status).toBe('error');
+    await act(page, 'discardTake');
+    await act(page, 'startRecording');
+    expect((await readState(page)).recording.status).toBe('idle');
+
+    await plugMicrophoneIn(page);
+    await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
+    await expect.poll(async () => (await readLive(page)).inputLevel).toBeGreaterThan(0.05);
+
+    // Unplugged between takes with another microphone still there: nothing to do for the singer.
+    const before = await microphoneTracks(page);
+    await unplugMicrophone(page);
+    await expect.poll(() => microphoneTracks(page)).toEqual({ opened: before.opened + 1, live: 1 });
+    await expect.poll(async () => (await readState(page)).engine.status).toBe('running');
+    await expect.poll(async () => (await readLive(page)).inputLevel).toBeGreaterThan(0.05);
+    await recordTake(page, 1);
+    await act(page, 'discardTake');
+    await expect.poll(() => takeFolders(launched.userDataDir)).toEqual([]);
+  });
 });
 
 test('a gesture control follows the hand while a manual one stays on its slider', async () => {
@@ -462,17 +419,15 @@ test('a gesture control follows the hand while a manual one stays on its slider'
       seconds: 2,
     },
   ]);
-  const launched = await launchApp({ fakeVideo: clip.path });
+  const launched = await launchStudioApp({ fakeVideo: clip.path });
   try {
     const { page } = launched;
-    await waitForStudio(page);
     await act(page, 'updateSettings', {
       controls: {
         autotune: { source: 'gesture', manual: 0.2 },
         volume: { source: 'manual', manual: 0.3 },
       },
     });
-    await attachPreview(page);
     await act(page, 'completeOnboarding');
     await expect
       .poll(async () => (await readState(page)).tracking.status, { timeout: 60_000 })
