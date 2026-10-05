@@ -1,0 +1,31 @@
+.bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: var(--z-floating);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  height: var(--titlebar-height);
+  padding: 0 var(--space-4) 0 var(--titlebar-safe-left);
+}
+
+.songs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+}
+
+/* The segmented control is made for glass surfaces; this capsule is its surface over video. */
+.modeSwitch {
+  display: inline-flex;
+  padding: 3px;
+}

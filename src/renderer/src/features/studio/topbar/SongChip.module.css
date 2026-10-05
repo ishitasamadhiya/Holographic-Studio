@@ -1,0 +1,106 @@
+/* The same glass capsule as the design system's Chip, two pixels taller so that the small
+   round buttons inside it keep a margin. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 13px;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-edge), var(--shadow-sm);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.chip[data-has-actions] {
+  padding-right: 4px;
+}
+
+.action {
+  transition:
+    background-color var(--duration-fast) ease,
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.action:hover {
+  background: var(--glass-fill-strong);
+}
+
+.action:active {
+  transform: scale(0.97);
+}
+
+.action:focus-visible {
+  box-shadow: var(--glass-edge), var(--shadow-sm), var(--focus-halo);
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  margin-left: -2px;
+  color: var(--color-text-secondary);
+}
+
+.icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.busyIcon {
+  color: var(--holo-ice);
+}
+
+.warningIcon {
+  color: var(--color-warning);
+}
+
+.text {
+  min-width: 0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail {
+  flex: none;
+  color: var(--color-text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.detail::before {
+  content: '·';
+  margin-right: 6px;
+}
+
+.textButton {
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  border-radius: var(--radius-xs);
+  color: inherit;
+  font-weight: inherit;
+  text-overflow: ellipsis;
+}
+
+.textButton:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Two classes, so this wins over the design system's own size whatever the bundle order. */
+.chip .chipButton {
+  --icon-button-size: 24px;
+}
+
+.chip .chipButton svg {
+  width: 13px;
+  height: 13px;
+}
