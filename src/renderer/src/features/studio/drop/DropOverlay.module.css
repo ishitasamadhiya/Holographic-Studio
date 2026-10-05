@@ -1,0 +1,44 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: calc(var(--z-floating) + 20);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  background: rgb(0 0 0 / 0.42);
+  backdrop-filter: blur(6px);
+  /* The window's drag events must keep reaching the listeners on window. */
+  pointer-events: none;
+  animation: appear var(--duration-base) ease;
+}
+
+.target {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  width: min(440px, 100%);
+  padding: var(--space-10) var(--space-8);
+  border: 1.5px dashed rgb(var(--holo-ice-rgb) / 0.6);
+  border-radius: var(--radius-xl);
+  background: rgb(var(--holo-ice-rgb) / 0.06);
+  color: var(--holo-ice);
+  text-align: center;
+}
+
+.title {
+  margin-top: var(--space-2);
+  color: var(--color-text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+}
+
+.hint {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}

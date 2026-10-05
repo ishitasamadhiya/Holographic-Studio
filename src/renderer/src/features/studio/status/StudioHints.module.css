@@ -1,0 +1,37 @@
+/* Under the top bar, where the toasts also appear; the reminder steps aside for them. */
+.reminder {
+  position: absolute;
+  top: calc(var(--titlebar-height) + var(--space-3));
+  left: 50%;
+  z-index: var(--z-floating);
+  width: min(440px, calc(100% - 2 * var(--studio-edge)));
+  transform: translateX(-50%);
+  animation: appear var(--duration-slow) var(--ease-out);
+}
+
+/* Just above the record bar. */
+.hintSlot {
+  position: absolute;
+  bottom: 136px;
+  left: 50%;
+  z-index: var(--z-floating);
+  display: flex;
+  justify-content: center;
+  max-width: calc(100% - 2 * var(--studio-edge));
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.hintSlot > * {
+  pointer-events: auto;
+}
+
+.handsHint {
+  animation: appear var(--duration-slow) var(--ease-out);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+}

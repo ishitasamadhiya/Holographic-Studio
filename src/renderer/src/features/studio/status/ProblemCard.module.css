@@ -1,0 +1,63 @@
+.layer {
+  position: absolute;
+  inset: var(--titlebar-height) 0 128px;
+  z-index: calc(var(--z-floating) + 10);
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  pointer-events: none;
+}
+
+.card {
+  display: grid;
+  justify-items: center;
+  width: min(380px, 100%);
+  padding: var(--space-8) var(--space-6) var(--space-6);
+  text-align: center;
+  pointer-events: auto;
+  animation: appear var(--duration-slow) var(--ease-out);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--space-4);
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: 50%;
+  background: var(--layer-2);
+  color: var(--color-warning);
+}
+
+.icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.title {
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+
+.message {
+  max-width: 36ch;
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-6);
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+}
