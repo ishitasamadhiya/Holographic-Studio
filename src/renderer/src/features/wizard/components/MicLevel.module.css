@@ -1,0 +1,18 @@
+.level {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+}
+
+.prominent {
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-5);
+}
+
+.icon {
+  color: var(--color-text-secondary);
+}

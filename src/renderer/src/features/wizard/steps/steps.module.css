@@ -1,0 +1,231 @@
+/* Small layout pieces shared by the step bodies. */
+
+/* A quiet supporting sentence under a control. */
+.hint {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+/* A plain explanatory sentence in the body of a step. */
+.note {
+  max-width: 54ch;
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* An inset group for a step's main control(s). */
+.panel {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+}
+
+.panelDivider {
+  height: var(--hairline);
+  margin-inline: calc(var(--space-4) * -1);
+  background: var(--color-divider);
+}
+
+/* ── Camera or Audio Only ──────────────────────────────────────────────── */
+.cameraRow {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4);
+}
+
+/* ── Test your headphones ──────────────────────────────────────────────── */
+.testSound {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-5);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+  text-align: center;
+}
+
+.testSoundIcon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: 50%;
+  background: var(--layer-2);
+  color: var(--color-text-primary);
+}
+
+.testSoundPrompt {
+  color: var(--color-text-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+
+.tips {
+  display: grid;
+  gap: var(--space-1);
+  padding-left: var(--space-5);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+  list-style: disc;
+  text-align: left;
+}
+
+.testSound .actions {
+  justify-content: center;
+}
+
+/* ── Try your hands ────────────────────────────────────────────────────── */
+.handsRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.indicators {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.handChips {
+  position: absolute;
+  inset: auto var(--space-2) var(--space-2);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* A hand that is not in view yet: present, but clearly waiting. */
+.handChipWaiting {
+  opacity: 0.72;
+}
+
+/* What each hand does, with the resting-distance setting beside it. */
+.handsGuide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 196px;
+  align-items: start;
+  gap: var(--space-4);
+}
+
+.instructions {
+  display: grid;
+  gap: 6px;
+}
+
+.instruction {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-snug);
+}
+
+.instruction strong {
+  flex: none;
+  min-width: 68px;
+  color: var(--color-text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.calibration {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-2);
+}
+
+.calibrationSaved {
+  color: var(--color-success);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-snug);
+}
+
+/* ── Learning the melody ───────────────────────────────────────────────── */
+.melody {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+}
+
+.melodyFile {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── You're ready ──────────────────────────────────────────────────────── */
+.summary {
+  display: grid;
+  margin: 0;
+  padding: var(--space-1) var(--space-4);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 40px;
+  padding-block: var(--space-2);
+}
+
+.summaryRow + .summaryRow {
+  border-top: var(--hairline) solid var(--color-divider);
+}
+
+.summaryLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+}
+
+.summaryIcon {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+}
+
+.summaryValue {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,0 +1,26 @@
+.preview {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-canvas);
+  box-shadow: var(--glass-edge);
+}
+
+/* Mirrored: moving your right hand moves the hand on the right of the picture. */
+.video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.cover {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-canvas-raised);
+  color: var(--color-text-tertiary);
+}

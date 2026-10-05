@@ -1,0 +1,82 @@
+.screen {
+  position: relative;
+  display: grid;
+  place-content: center;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-6) var(--space-8);
+  overflow: hidden;
+  background: var(--color-canvas);
+  isolation: isolate;
+}
+
+/* A faint iridescent haze behind the card: present, never loud. */
+.aurora {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(60% 50% at 22% 12%, rgb(var(--holo-lilac-rgb) / 0.2), transparent 70%),
+    radial-gradient(50% 45% at 82% 20%, rgb(var(--holo-ice-rgb) / 0.17), transparent 70%),
+    radial-gradient(60% 50% at 55% 100%, rgb(var(--holo-mint-rgb) / 0.13), transparent 70%);
+}
+
+/* Covers the height of the missing title bar, traffic lights included. */
+.dragStrip {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--titlebar-height);
+}
+
+/* One size for every step, so nothing but the content changes as the singer moves along.
+   In a window too small for it the card shrinks and the step's body scrolls. */
+.card {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-6);
+  width: min(620px, 100vw - 2 * var(--space-8));
+  height: min(564px, 100vh - 2 * var(--space-6));
+  padding: var(--space-6) var(--space-8);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.appName {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.stepper {
+  margin-left: auto;
+}
+
+.stepCount {
+  min-width: 82px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* The keyboard shortcut for the step's main button. Sits below the card without moving
+   it, and only where the window leaves room. */
+.shortcut {
+  position: absolute;
+  top: calc(50% + 282px + var(--space-4));
+  display: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+@media (min-height: 700px) {
+  .shortcut {
+    display: inline-flex;
+  }
+}
