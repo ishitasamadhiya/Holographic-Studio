@@ -1,0 +1,223 @@
+/*
+ * Design tokens for Holographic Studio.
+ *
+ * The interface floats on top of a live, bright, constantly changing webcam image, so every
+ * surface is a dark translucent "glass" that also dims what is behind it, and all text is
+ * near-white. The only colour accent is a pale iridescent gradient used in thin strokes.
+ */
+:root {
+  color-scheme: dark;
+
+  /* ── Colour: canvas and text ─────────────────────────────────────────── */
+  --color-canvas: #08080b;
+  --color-canvas-raised: #111116;
+  --color-text-primary: rgb(255 255 255 / 0.96);
+  --color-text-secondary: rgb(255 255 255 / 0.74);
+  /* 0.6 is the floor at which fine print still reaches 4.5:1 on regular glass over white. */
+  --color-text-tertiary: rgb(255 255 255 / 0.6);
+  --color-text-disabled: rgb(255 255 255 / 0.34);
+  --color-text-on-light: #111116;
+
+  /* ── Colour: the holographic accent (use sparingly, thin fills only) ─── */
+  /* Channels first, so glows and tints can reuse the exact hue at another opacity. */
+  --holo-lilac-rgb: 207 191 255;
+  --holo-ice-rgb: 169 216 255;
+  --holo-mint-rgb: 179 243 218;
+  --holo-lilac: rgb(var(--holo-lilac-rgb));
+  --holo-ice: rgb(var(--holo-ice-rgb));
+  --holo-mint: rgb(var(--holo-mint-rgb));
+  --holo-gradient: linear-gradient(
+    90deg,
+    var(--holo-lilac) 0%,
+    var(--holo-ice) 52%,
+    var(--holo-mint) 100%
+  );
+  --holo-gradient-vertical: linear-gradient(
+    0deg,
+    var(--holo-lilac) 0%,
+    var(--holo-ice) 52%,
+    var(--holo-mint) 100%
+  );
+  --color-accent: var(--holo-ice);
+
+  /* ── Colour: meaning ─────────────────────────────────────────────────── */
+  /* Saturated red is reserved for the record state. */
+  --color-record-rgb: 255 69 58;
+  --color-record: rgb(var(--color-record-rgb));
+  --color-record-glow: rgb(var(--color-record-rgb) / 0.45);
+  --color-success: #8ce9c1;
+  --color-warning: #ffd27a;
+  --color-danger-rgb: 255 141 133;
+  --color-danger: rgb(var(--color-danger-rgb));
+  --color-info: var(--holo-ice);
+
+  /* ── Glass surfaces ──────────────────────────────────────────────────── */
+  --glass-tint: 18 18 24;
+  --glass-fill-subtle: rgb(var(--glass-tint) / 0.5);
+  --glass-fill-regular: rgb(var(--glass-tint) / 0.64);
+  --glass-fill-strong: rgb(var(--glass-tint) / 0.8);
+  --glass-border: rgb(255 255 255 / 0.16);
+  --glass-border-strong: rgb(255 255 255 / 0.28);
+  /* Top-edge highlight plus a dark outer hairline that keeps the edge visible on white. */
+  --glass-edge: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 0 0 0.5px rgb(0 0 0 / 0.38);
+  --hairline: 0.5px;
+
+  --blur-sm: 12px;
+  --blur-md: 24px;
+  --blur-lg: 40px;
+  /* Brightness < 1 is what keeps white text readable over a sunlit window or a white wall:
+     with these fills, pure white behind regular glass ends up around rgb(68 68 70).
+     Saturation < 1 keeps every panel the same neutral material; left at 1 or above, a
+     panel over an orange shirt and one over a green plant read as two different colours. */
+  --glass-backdrop: blur(var(--blur-md)) saturate(0.65) brightness(0.62);
+  --glass-backdrop-strong: blur(var(--blur-lg)) saturate(0.65) brightness(0.5);
+
+  /* Translucent white layers for controls that sit on a glass surface. */
+  --layer-1: rgb(255 255 255 / 0.07);
+  --layer-2: rgb(255 255 255 / 0.12);
+  --layer-3: rgb(255 255 255 / 0.18);
+  --layer-4: rgb(255 255 255 / 0.26);
+  --color-divider: rgb(255 255 255 / 0.1);
+
+  /* The unfilled part of every slider, meter, progress bar and switch. */
+  --track-fill: rgb(255 255 255 / 0.2);
+  --thumb-fill: #fff;
+  /* The small mark at a notable value on a track (unity gain, zero offset). */
+  --tick-fill: rgb(255 255 255 / 0.55);
+
+  /* The near-white emphasis surface (primary button, pressed icon button). */
+  --solid-fill: rgb(255 255 255 / 0.94);
+  --solid-fill-hover: #fff;
+
+  /* Dimming behind overlays. The sheet's is light so the video stays visible beside it. */
+  --scrim-light: rgb(0 0 0 / 0.28);
+  --scrim-strong: rgb(0 0 0 / 0.46);
+
+  /* ── Radii ───────────────────────────────────────────────────────────── */
+  --radius-xs: 6px;
+  --radius-sm: 9px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --radius-full: 999px;
+
+  /* ── Spacing (4 px grid) ─────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Segoe UI Variable',
+    'Segoe UI', system-ui, 'Helvetica Neue', Arial, sans-serif;
+  --font-rounded: ui-rounded, 'SF Pro Rounded', var(--font-sans);
+
+  --text-2xs: 10px;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-lg: 15px;
+  --text-xl: 17px;
+  --text-2xl: 22px;
+  --text-3xl: 28px;
+  --text-4xl: 40px;
+
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.45;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --tracking-tight: -0.022em;
+  --tracking-normal: -0.006em;
+  --tracking-wide: 0.06em;
+
+  /* For text placed directly on the video, outside any glass surface. */
+  --text-shadow-on-media: 0 1px 2px rgb(0 0 0 / 0.55), 0 0 14px rgb(0 0 0 / 0.4);
+
+  /* ── Shadows ─────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 8px 24px -6px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.22);
+  --shadow-lg: 0 28px 64px -16px rgb(0 0 0 / 0.62), 0 10px 24px -10px rgb(0 0 0 / 0.4);
+  --shadow-thumb: 0 1px 3px rgb(0 0 0 / 0.45), 0 0 0 0.5px rgb(0 0 0 / 0.2);
+  --shadow-solid: 0 1px 2px rgb(0 0 0 / 0.28), 0 4px 14px -4px rgb(0 0 0 / 0.4);
+  /* For shadow custom properties that are combined in a list: `none` would void the whole
+     list, an empty transparent shadow does not. */
+  --shadow-none: 0 0 0 0 transparent;
+
+  /* ── Keyboard focus ──────────────────────────────────────────────────── */
+  /* The ring itself is an outline (global.css): no box-shadow a component sets or animates
+     can remove it. The halo is painted underneath as a box-shadow: a dark gap inside the
+     ring and a dark rim outside it, so the pale ring also holds on a white wall, plus a
+     faint lilac bloom. */
+  --focus-ring-color: var(--holo-ice);
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-halo:
+    0 0 0 var(--focus-ring-offset) rgb(8 8 11 / 0.9), 0 0 0 5.5px rgb(8 8 11 / 0.6),
+    0 0 18px 4px rgb(var(--holo-lilac-rgb) / 0.4);
+
+  /* ── Motion ──────────────────────────────────────────────────────────── */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.55, 0, 0.8, 0.2);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.36, 0.64, 1);
+  /* Periods of the looping animations. They are not shortened for reduced motion; each
+     loop is replaced or removed in its own stylesheet instead. */
+  --loop-spin: 900ms;
+  --loop-glide: 1400ms;
+  --loop-pulse: 1200ms;
+  --loop-pulse-slow: 1600ms;
+  --loop-ripple: 1800ms;
+
+  /* ── Layers ──────────────────────────────────────────────────────────── */
+  /* Each overlay layer contains its own scrim. Toasts sit above dialogs on purpose: an
+     error must never be hidden behind a dimmed, blurred backdrop. */
+  --z-floating: 100;
+  --z-sheet: 410;
+  --z-modal: 500;
+  --z-toast: 600;
+  --z-tooltip: 700;
+
+  /* ── Window chrome ───────────────────────────────────────────────────── */
+  /* Frameless macOS window: traffic lights sit at x = 18, y = 18
+     (see src/main/window/mainWindow.ts). */
+  --titlebar-height: 52px;
+  --titlebar-safe-left: 88px;
+  --scrollbar-size: 10px;
+
+  /* ── Control metrics ─────────────────────────────────────────────────── */
+  --control-height-sm: 28px;
+  --control-height-md: 34px;
+  --control-height-lg: 42px;
+}
+
+/* Only macOS draws window buttons over the content. The app shell sets data-platform on
+   <html> (from AppInfo.platform) and other platforms get an ordinary left margin. */
+:root[data-platform='win32'],
+:root[data-platform='linux'] {
+  --titlebar-safe-left: var(--space-5);
+}
+
+/* Transitions built on the duration tokens collapse to (near) instant for people who ask
+   for less motion; looping animations opt out individually in their own stylesheets. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0.01ms;
+    --duration-base: 0.01ms;
+    --duration-slow: 0.01ms;
+  }
+}

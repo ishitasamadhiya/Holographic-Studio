@@ -1,0 +1,196 @@
+@import './tokens.css';
+
+/* ── Reset ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  background: var(--color-canvas);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* A desktop app, not a document: text is only selectable where it is useful. */
+  user-select: none;
+  cursor: default;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+}
+
+button,
+input,
+select,
+textarea {
+  margin: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+}
+
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/* Icons keep their size when a row runs out of space; the text next to them gives way. */
+svg {
+  flex-shrink: 0;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+:focus {
+  outline: none;
+}
+
+/* Keyboard focus. The outline is the ring and must never be removed without a replacement;
+   the halo is an enhancement, so a component that has shadows of its own repeats this rule
+   as `box-shadow: <its shadows>, var(--focus-halo)`. */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  box-shadow: var(--focus-halo);
+}
+
+::selection {
+  background: rgb(var(--holo-ice-rgb) / 0.32);
+}
+
+/* Thin translucent scrollbars that suit the glass surfaces. */
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: var(--radius-full);
+  background: var(--layer-4);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(255 255 255 / 0.36);
+  background-clip: content-box;
+}
+
+/* ── Frameless window helpers ──────────────────────────────────────────── */
+/* Put .app-drag on the strip that should move the window (usually the top bar). Everything
+   interactive inside it must be no-drag or it cannot be clicked; the rule below covers the
+   usual controls, and .app-no-drag is there for anything custom.
+
+   Chromium builds the window's drag area from rectangles and ignores stacking order, so an
+   element that merely covers a drag strip (a sheet, a dialog, a toast) is still dragged
+   through unless it is no-drag itself. The design system's overlays declare that in their
+   own stylesheets; anything else that is rendered over the top bar needs .app-no-drag. */
+.app-drag {
+  -webkit-app-region: drag;
+}
+
+.app-no-drag,
+.app-drag button,
+.app-drag a,
+.app-drag input,
+.app-drag select,
+.app-drag textarea,
+.app-drag label,
+.app-drag [role='button'],
+.app-drag [role='slider'],
+.app-drag [role='switch'],
+.app-drag [role='radio'],
+.app-drag [role='radiogroup'],
+.app-drag [tabindex] {
+  -webkit-app-region: no-drag;
+}
+
+/* Keeps content clear of the macOS traffic lights in the top-left corner. */
+.titlebar-safe-area {
+  min-height: var(--titlebar-height);
+  padding-left: var(--titlebar-safe-left);
+}
+
+/* ── Utilities ─────────────────────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.selectable-text {
+  user-select: text;
+  cursor: text;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.text-on-media {
+  text-shadow: var(--text-shadow-on-media);
+}
