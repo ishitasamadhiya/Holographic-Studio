@@ -243,7 +243,11 @@ export class StemCapture {
     }
   }
 
-  /** Hands the oldest `frames` buffered frames to the listener and keeps the rest. */
+  /**
+   * Hands the oldest `frames` buffered frames to the listener and keeps the rest. The two
+   * chunk arrays are the audio thread's one steady allocation (two per chunk, four chunks a
+   * second): they are transferred rather than copied, and whoever receives them may keep them.
+   */
   private emit(frames: number): void {
     const samples = frames * STEM_CHANNELS;
     const buffered = this.bufferedFrames * STEM_CHANNELS;

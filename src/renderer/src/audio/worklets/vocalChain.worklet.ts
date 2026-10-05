@@ -47,7 +47,10 @@ class VocalChainProcessor extends AudioWorkletProcessor implements AudioWorkletP
     targetMidi: Number.NaN,
     correctionCents: 0,
   };
-  /** Reused for every report: posting clones it, so nothing is allocated on this side. */
+  /**
+   * Reused for every report. Posting still serializes it on this thread, a small allocation
+   * 30 times a second that no MessagePort message can avoid.
+   */
   private readonly metersMessage: VocalMetersMessage = {
     type: 'meters',
     inputPeak: 0,
