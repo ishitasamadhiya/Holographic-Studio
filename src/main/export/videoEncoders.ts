@@ -20,10 +20,15 @@ export const HARDWARE_H264: VideoEncoder = {
   ],
 };
 
-/** Software fallback that works everywhere. Quality-targeted, so the bitrate is not used. */
+/**
+ * Software fallback that works everywhere. Quality-targeted, so the bitrate is not used.
+ * B-frames are off: with them the first frame's timestamp is delayed and only an MP4 edit
+ * list pulls it back to zero, so players that ignore edit lists would show the picture
+ * late against the sound. Without them the video starts at zero like the hardware output.
+ */
 export const SOFTWARE_H264: VideoEncoder = {
   name: 'libx264',
-  outputArgs: () => ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18'],
+  outputArgs: () => ['-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-bf', '0'],
 };
 
 const PIXELS_720P = 1280 * 720;

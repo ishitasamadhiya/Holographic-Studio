@@ -44,7 +44,14 @@ export interface ParsedExportRequest {
   artworkPng?: Uint8Array;
 }
 
-/** Validates an ExportRequest from the UI. Null means the request is malformed. */
+/**
+ * Validates an ExportRequest from the UI. Null means the request is malformed.
+ *
+ * Trust assumption: any absolute *.mp4 path is accepted (and replaced if it exists), not only
+ * one the save dialog returned. That is safe only because the bridge answers nothing but the
+ * app's own sandboxed, context-isolated page (see trustedSender.ts); the page is trusted to
+ * pass the path the user chose.
+ */
 export function parseExportRequest(value: unknown): ParsedExportRequest | null {
   if (!isPlainObject(value)) return null;
   const { takeId, outputPath, artworkPng } = value;

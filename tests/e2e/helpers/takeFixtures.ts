@@ -380,6 +380,30 @@ export async function probeMedia(path: string): Promise<ProbedMedia> {
   };
 }
 
+/**
+ * The first video timestamp of an MP4 as a player that ignores edit lists sees it, and
+ * whether the stream uses B-frames (which delay that timestamp unless an edit list fixes it).
+ */
+export async function videoStartIgnoringEditList(
+  path: string,
+): Promise<{ startPts: number; hasBFrames: number }> {
+  const { stdout } = await run(ffprobePath, [
+    '-v',
+    'error',
+    '-ignore_editlist',
+    '1',
+    '-select_streams',
+    'v:0',
+    '-show_entries',
+    'stream=start_pts,has_b_frames',
+    '-of',
+    'json',
+    path,
+  ]);
+  const stream = (JSON.parse(stdout) as Pick<RawProbe, 'streams'>).streams[0];
+  return { startPts: Number(stream?.start_pts), hasBFrames: Number(stream?.has_b_frames) };
+}
+
 /** Presentation times (seconds) of every video frame in a file, in order. */
 export async function videoFrameTimes(path: string): Promise<number[]> {
   const { stdout } = await run(

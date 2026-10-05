@@ -92,7 +92,8 @@ export interface StillExportArgs {
 export function buildStillExportArgs(options: StillExportArgs): string[] {
   const { artworkPath, audioPath, outputPath, durationSec } = options;
   const pictureInput = artworkPath
-    ? ['-i', artworkPath]
+    ? // The image demuxer would otherwise read "%d" anywhere in the path as a sequence pattern.
+      ['-f', 'image2', '-pattern_type', 'none', '-i', artworkPath]
     : [
         '-f',
         'lavfi',
@@ -129,6 +130,9 @@ export function buildStillExportArgs(options: StillExportArgs): string[] {
     'stillimage',
     '-crf',
     '18',
+    // As for SOFTWARE_H264: no B-frames, so the picture starts at zero even without an edit list.
+    '-bf',
+    '0',
     '-g',
     String(STILL_FRAME_RATE * 2),
     ...AUDIO_ARGS,

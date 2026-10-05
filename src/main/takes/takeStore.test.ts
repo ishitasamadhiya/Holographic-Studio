@@ -185,6 +185,23 @@ describe('TakeStore', () => {
     });
   });
 
+  it.each([
+    ['shorter than the vocal latency trim', 4800, audioManifest(4800, 0.2)],
+    ['a manifest that reports no frames', 24_000, audioManifest(0)],
+  ])(
+    'fails a take with nothing left to export (%s) and stores no manifest',
+    async (_name, framesSent, manifest) => {
+      const takeId = await beginTake();
+      store.appendAudio(takeId, audioChunk(framesSent, 0), audioChunk(framesSent, 0));
+      const result = await store.finish(takeId, manifest);
+
+      expect(result).toMatchObject({ ok: false, error: { code: 'recording-failed' } });
+      if (!result.ok) expect(result.error.detail).toMatch(/too short/);
+      expect(store.finishedTakeDir(takeId)).toBeNull();
+      expect(await readdir(join(root, takeId))).not.toContain(MANIFEST_FILE);
+    },
+  );
+
   it('fails when the manifest is invalid or contradicts how the take was started', async () => {
     const takeId = await beginTake();
     store.appendAudio(takeId, audioChunk(4800, 0), audioChunk(4800, 0));

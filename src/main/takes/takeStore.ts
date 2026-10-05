@@ -127,9 +127,13 @@ export class TakeStore {
         ...parsed,
         audioFrames: Math.min(parsed.audioFrames, framesOnDisk),
       };
+      const plan = planMix(stored);
+      // E.g. an audio take stopped within the vocal latency of starting: nothing is left to save.
+      if (plan.outputFrames === 0) {
+        return fail('recording-failed', 'The take is too short to export');
+      }
       await writeFileAtomic(join(take.dir, MANIFEST_FILE), JSON.stringify(stored, null, 2));
 
-      const plan = planMix(stored);
       take.summary = {
         takeId,
         durationSec: plan.outputFrames / plan.sampleRate,

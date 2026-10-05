@@ -15,6 +15,7 @@ import {
   makePng,
   probeMedia,
   topLevelMp4Boxes,
+  videoStartIgnoringEditList,
   writeSyntheticTake,
   type SyntheticTakeOptions,
   type VideoFlavour,
@@ -109,6 +110,8 @@ async function expectStandardMp4(path: string, durationSec: number): Promise<voi
   expect(video.pixelFormat).toBe('yuv420p');
   expect(video.frameRate).toBe(30);
   expect(Math.abs(video.startTimeSec)).toBeLessThan(FRAME_SEC);
+  // The picture starts at zero by itself, not only through the MP4 edit list.
+  expect(await videoStartIgnoringEditList(path)).toEqual({ startPts: 0, hasBFrames: 0 });
 
   const audio = media.audio[0]!;
   expect(audio.codecName).toBe('aac');
@@ -340,6 +343,7 @@ describe('exportTake: audio-only takes', () => {
     expect(Math.abs(audio.durationSec - durationSec)).toBeLessThan(DURATION_TOLERANCE_SEC);
     // At 10 fps the picture track can only match the audio to the nearest frame.
     expect(Math.abs(video.durationSec - durationSec)).toBeLessThan(0.1 + 0.001);
+    expect(await videoStartIgnoringEditList(path)).toEqual({ startPts: 0, hasBFrames: 0 });
     const boxes = await topLevelMp4Boxes(path);
     expect(boxes.indexOf('moov')).toBeLessThan(boxes.indexOf('mdat'));
   }
@@ -385,6 +389,26 @@ describe('exportTake: audio-only takes', () => {
       expect(Math.abs(value - expectedMean)).toBeLessThan(25);
     }
     expect(await readdir(takeDir)).not.toContain('artwork.png');
+  });
+
+  it('reads the artwork from a take folder whose path looks like an image-sequence pattern', async () => {
+    // Exactly one pattern: FFmpeg treats a path with two as a plain file name.
+    const takeDir = join(root, `user%03d-${++takeCounter}`, 'takes');
+    await mkdir(takeDir, { recursive: true });
+    await writeSyntheticTake(takeDir, audioTake);
+    const outputPath = join(await makeOutputDir(), 'pattern-path.mp4');
+
+    expectOk(
+      await exportTake({
+        takeDir,
+        outputPath,
+        ffmpegPath,
+        artworkPng: await makePng(64, 64, 'white'),
+      }),
+    );
+
+    await expectStillMp4(outputPath, 2.975);
+    expect(Math.max(...(await frameBrightness(outputPath)))).toBeGreaterThan(30);
   });
 
   it('resamples a 44.1 kHz take to 48 kHz AAC', async () => {

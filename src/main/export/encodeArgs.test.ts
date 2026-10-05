@@ -61,6 +61,7 @@ describe('buildVideoExportArgs', () => {
     expect(valueOf(software, '-c:v')).toBe('libx264');
     expect(valueOf(software, '-preset')).toBe('veryfast');
     expect(valueOf(software, '-crf')).toBe('18');
+    expect(valueOf(software, '-bf')).toBe('0');
     expect(software).not.toContain('-b:v');
   });
 });
@@ -77,6 +78,14 @@ describe('buildStillExportArgs', () => {
     const inputs = args.flatMap((arg, index) => (arg === '-i' ? [args[index + 1]] : []));
     expect(inputs).toEqual(['/takes/abc/artwork.png', base.audioPath]);
     expect(args).not.toContain('lavfi');
+    // A literal path, never an image-sequence pattern.
+    const artworkInput = args.indexOf('-i');
+    expect(args.slice(artworkInput - 4, artworkInput)).toEqual([
+      '-f',
+      'image2',
+      '-pattern_type',
+      'none',
+    ]);
   });
 
   it('generates a dark 1920x1080 frame when there is none', () => {
