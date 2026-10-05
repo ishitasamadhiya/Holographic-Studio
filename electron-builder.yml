@@ -1,0 +1,27 @@
+appId: com.holographicstudio.app
+productName: Holographic Studio
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**
+  - package.json
+# FFmpeg is an executable, so it has to live outside the asar archive.
+asarUnpack:
+  - node_modules/ffmpeg-static/**
+mac:
+  category: public.app-category.music
+  target:
+    - dmg
+    - zip
+  # Ad-hoc signature: enough to run locally on Apple Silicon without a Developer ID.
+  identity: '-'
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSCameraUsageDescription: Holographic Studio uses the camera to record your performance and to follow your hand gestures.
+    NSMicrophoneUsageDescription: Holographic Studio uses the microphone to record your voice.
+win:
+  target: nsis
