@@ -1,0 +1,17 @@
+node_modules/
+out/
+out-*/
+dist/
+release/
+coverage/
+test-results/
+playwright-report/
+.DS_Store
+*.log
+*.tsbuildinfo
+.vite/
+.env
+.env.*
+
+# MediaPipe WASM runtime is copied out of node_modules by scripts/prepare-assets.mjs
+src/renderer/public/mediapipe/
