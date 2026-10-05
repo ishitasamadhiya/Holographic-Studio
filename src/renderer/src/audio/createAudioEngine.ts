@@ -42,6 +42,9 @@ import { loadWorkletModules } from './workletModules';
 /** The song clock is re-sent to the vocal chain when the round-trip latency moves this much. */
 const LATENCY_UPDATE_THRESHOLD_SEC = 0.0005;
 
+const PROCESSOR_FAILED_MESSAGE = 'The live sound stopped unexpectedly. Try again to restart it.';
+const INTERRUPTED_MESSAGE = 'The system interrupted the sound.';
+
 /** Everything that exists only while the engine runs. */
 interface Session {
   context: AudioContext;
@@ -55,10 +58,17 @@ interface Session {
   /** Round-trip latency the vocal chain last received with the song clock. */
   sentRoundTripSec: number;
   clockTimer: ReturnType<typeof setInterval>;
+  /** The first thing that broke live audio in this session (AudioEngine.fault). */
+  fault: AppError | null;
 }
 
 function stopTracks(stream: MediaStream): void {
   for (const track of stream.getTracks()) track.stop();
+}
+
+/** An 'audio-engine-failed' error for something that went wrong after the engine started. */
+function runtimeFailure(message: string, detail: string): AppError {
+  return { ...createAppError('audio-engine-failed', detail), message };
 }
 
 function withTimeout(task: Promise<void>, timeoutMs: number): Promise<void> {
@@ -109,6 +119,10 @@ class WebAudioEngine implements AudioEngine {
 
   get isRunning(): boolean {
     return this.session !== null;
+  }
+
+  get fault(): AppError | null {
+    return this.session?.fault ?? null;
   }
 
   get sampleRate(): number {
@@ -377,6 +391,7 @@ class WebAudioEngine implements AudioEngine {
       clockTimer: setInterval(() => {
         this.sampleOutputClock(session);
       }, OUTPUT_CLOCK_SAMPLE_INTERVAL_MS),
+      fault: null,
     };
 
     graph.vocal.port.onmessage = (event: MessageEvent<VocalChainEvent>) => {
@@ -388,6 +403,15 @@ class WebAudioEngine implements AudioEngine {
     context.onstatechange = () => {
       this.handleContextState(session);
     };
+    // A processor whose process() throws outputs silence for the rest of its life. Listeners
+    // rather than onprocessorerror, which Chromium skipped for a dispatched event in testing;
+    // they need no removal, since setFault ignores a session that has ended.
+    graph.vocal.addEventListener('processorerror', () => {
+      this.setFault(session, runtimeFailure(PROCESSOR_FAILED_MESSAGE, 'The vocal chain failed'));
+    });
+    graph.recorder.addEventListener('processorerror', () => {
+      this.setFault(session, runtimeFailure(PROCESSOR_FAILED_MESSAGE, 'The stem recorder failed'));
+    });
 
     this.clock.reset();
     this.meters.reset();
@@ -439,17 +463,34 @@ class WebAudioEngine implements AudioEngine {
     for (const track of stream.getAudioTracks()) {
       // Fires when the device goes away, never for our own track.stop().
       track.addEventListener('ended', () => {
-        if (this.session === session && session.stream === stream) {
-          this.reportError(createAppError('device-disconnected', 'The microphone track ended'));
+        if (session.stream === stream) {
+          this.setFault(
+            session,
+            createAppError('device-disconnected', 'The microphone track ended'),
+          );
         }
       });
     }
+  }
+
+  /** Records what broke live audio (the first fault stands) and reports it once. */
+  private setFault(session: Session, fault: AppError): void {
+    if (this.session !== session || session.fault !== null) return;
+    session.fault = fault;
+    // The meters would otherwise keep showing the last level a dead vocal chain reported.
+    this.meters.reset();
+    this.reportError(fault);
   }
 
   private handleContextState(session: Session): void {
     if (this.session !== session) return;
     const state: string = session.context.state;
     if (state === 'suspended' || state === 'interrupted') {
+      if (session.capture.isActive) {
+        // The audio clock stands still, so the stems get nothing while the camera keeps
+        // recording: no later sync estimate can line the two up across the gap.
+        this.reportError(runtimeFailure(INTERRUPTED_MESSAGE, `The audio context was ${state}`));
+      }
       // The system took the audio device away (another app, sleep, a route change): ask for it back.
       session.context.resume().catch((error: unknown) => {
         this.reportError(createAppError('audio-engine-failed', error));

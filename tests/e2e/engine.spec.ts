@@ -663,6 +663,98 @@ test.describe.serial('audio engine', () => {
     await page.evaluate(() => window.__engineProbe.engine.stop());
   });
 
+  test('a failing audio processor is a fault until the engine starts again', async () => {
+    const result = await page.evaluate(async () => {
+      const probe = window.__engineProbe;
+      const { engine } = probe;
+      const nodes: AudioWorkletNode[] = [];
+      const NativeWorkletNode = globalThis.AudioWorkletNode;
+      globalThis.AudioWorkletNode = class TrackedWorkletNode extends NativeWorkletNode {
+        constructor(context: BaseAudioContext, name: string, options?: AudioWorkletNodeOptions) {
+          super(context, name, options);
+          nodes.push(this);
+        }
+      };
+      try {
+        await engine.start({ microphoneId: null, outputId: null });
+      } finally {
+        globalThis.AudioWorkletNode = NativeWorkletNode;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const errorsBefore = probe.errors.length;
+      // What the node fires when its process() throws: from then on it only outputs silence.
+      nodes[0]?.dispatchEvent(new Event('processorerror'));
+      const meters = engine.readMeters();
+      const fault = engine.fault;
+      nodes[1]?.dispatchEvent(new Event('processorerror'));
+      const reported = probe.errors.slice(errorsBefore);
+      const stillRunning = engine.isRunning;
+      await engine.start({ microphoneId: null, outputId: null });
+      const faultAfterRestart = engine.fault;
+      await engine.stop();
+      return { nodes: nodes.length, meters, fault, reported, stillRunning, faultAfterRestart };
+    });
+    expect(result.nodes).toBe(2);
+    expect(result.fault).toMatchObject({ code: 'audio-engine-failed' });
+    // The recorder failing as well is part of the same fault: one report.
+    expect(result.reported).toEqual([result.fault]);
+    expect(result.meters).toMatchObject({ inputLevel: 0, outputLevel: 0 });
+    expect(result.stillRunning).toBe(true);
+    expect(result.faultAfterRestart).toBeNull();
+  });
+
+  test('an interruption during a capture is reported; the sound comes back by itself', async () => {
+    const result = await page.evaluate(async () => {
+      const probe = window.__engineProbe;
+      const { engine } = probe;
+      const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+      const contexts: AudioContext[] = [];
+      const NativeContext = globalThis.AudioContext;
+      globalThis.AudioContext = class WatchedAudioContext extends NativeContext {
+        constructor(options?: AudioContextOptions) {
+          super(options);
+          contexts.push(this);
+        }
+      };
+      try {
+        await engine.start({ microphoneId: null, outputId: null });
+      } finally {
+        globalThis.AudioContext = NativeContext;
+      }
+      const context = contexts.at(-1);
+      if (context === undefined) throw new Error('The engine opened no AudioContext');
+      const errorsBefore = probe.errors.length;
+
+      // Outside a take the engine only asks for the device back.
+      await context.suspend();
+      await sleep(300);
+      const idle = { errors: probe.errors.length - errorsBefore, state: context.state };
+
+      probe.startCollecting();
+      await engine.startCapture();
+      await sleep(600);
+      await context.suspend();
+      await sleep(300);
+      const finished = await engine.stopCapture();
+      const collected = probe.stopCollecting();
+      const reported = probe.errors.slice(errorsBefore);
+      const state = context.state;
+      await engine.stop();
+      return { idle, reported, state, finished, collectedFrames: collected.frames };
+    });
+    expect(result.idle).toEqual({ errors: 0, state: 'running' });
+    expect(result.reported).toEqual([
+      expect.objectContaining({
+        code: 'audio-engine-failed',
+        message: 'The system interrupted the sound.',
+      }),
+    ]);
+    expect(result.state).toBe('running');
+    // The capture keeps answering: everything it captured was delivered.
+    expect(result.finished.frames).toBe(result.collectedFrames);
+    expect(result.finished.frames).toBeGreaterThan(0.4 * SAMPLE_RATE);
+  });
+
   test('no console errors', () => {
     expect(consoleErrors).toEqual([]);
   });

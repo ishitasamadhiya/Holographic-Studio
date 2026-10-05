@@ -53,6 +53,7 @@ export const FAKE_LATENCY: LatencyBreakdown = {
 export class FakeEngine implements AudioEngine {
   readonly calls: EngineCall[] = [];
   running = false;
+  fault: AppError | null = null;
   sampleRate = 48000;
   outputSelectionSupported = true;
   hasBackingTrack = false;
@@ -117,13 +118,16 @@ export class FakeEngine implements AudioEngine {
   async start(options: EngineStartOptions): Promise<Result<void>> {
     this.log('start', options);
     const result = this.startResults.shift() ?? ok(undefined);
-    if (result.ok) this.running = true;
+    // Like the real engine, a start replaces whatever was running, even when it fails.
+    this.running = result.ok;
+    this.fault = null;
     return result;
   }
 
   async stop(): Promise<void> {
     this.log('stop');
     this.running = false;
+    this.fault = null;
   }
 
   async setMicrophone(deviceId: string | null): Promise<Result<void>> {
@@ -250,7 +254,17 @@ export class FakeEngine implements AudioEngine {
 
   fail(error: AppError, stillRunning = false): void {
     this.running = stillRunning;
-    for (const listener of this.errorListeners) listener(error);
+    this.emitError(error);
+  }
+
+  /** Live audio broke while the engine keeps running: the microphone went away, say. */
+  breakDown(fault: AppError): void {
+    this.fault = fault;
+    this.emitError(fault);
+  }
+
+  private emitError(error: AppError): void {
+    for (const listener of [...this.errorListeners]) listener(error);
   }
 
   get listenerCounts(): { stems: number; backingEnded: number; errors: number } {

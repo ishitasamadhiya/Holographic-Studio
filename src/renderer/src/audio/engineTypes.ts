@@ -58,6 +58,12 @@ export interface BackingStartOptions {
 
 export interface AudioEngine {
   readonly isRunning: boolean;
+  /**
+   * Why live audio has stopped working although the engine is still running, or null while it
+   * works: 'device-disconnected' when the microphone went away, 'audio-engine-failed' when an
+   * audio processor failed. Nothing recorded meanwhile can be trusted. Only start() clears it.
+   */
+  readonly fault: AppError | null;
   /** Sample rate of the running engine (48000 unless the device forces another rate). */
   readonly sampleRate: number;
   /** False where the platform cannot route audio to a chosen output device. */
@@ -114,6 +120,10 @@ export interface AudioEngine {
   /** Plays a short, pleasant test sound through the selected output. */
   playTestSound(): Promise<void>;
 
-  /** Runtime failures, e.g. the microphone being unplugged. */
+  /**
+   * Runtime failures: each new fault (see `fault`), an interruption of the audio during a
+   * capture (the stems would have a gap the camera recording does not have), and anything
+   * else that goes wrong while running.
+   */
   onError(listener: (error: AppError) => void): Unsubscribe;
 }
