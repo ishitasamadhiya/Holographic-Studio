@@ -1,0 +1,149 @@
+.bar {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  z-index: var(--z-floating);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-4);
+  /* Wide enough that the three readouts never crowd the record button. */
+  width: min(620px, calc(100% - 2 * var(--studio-edge)));
+  padding: var(--space-2) var(--space-5);
+  border: var(--hairline) solid transparent;
+  border-radius: var(--radius-full);
+  transform: translateX(-50%);
+  /* Idle, the bar is only its button: the empty sides must not swallow clicks. */
+  pointer-events: none;
+  transition:
+    background-color var(--duration-base) ease,
+    border-color var(--duration-base) ease,
+    box-shadow var(--duration-base) ease;
+}
+
+.bar > * {
+  pointer-events: auto;
+}
+
+.bar[data-expanded] {
+  border-color: var(--glass-border);
+  background: var(--glass-fill-regular);
+  backdrop-filter: var(--glass-backdrop);
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+}
+
+.start,
+.end {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.end {
+  justify-content: flex-end;
+  gap: var(--space-1);
+}
+
+.take {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding-left: var(--space-1);
+}
+
+.clock {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-record);
+  box-shadow: 0 0 8px var(--color-record-glow);
+  animation: pulse var(--loop-pulse) ease-in-out infinite alternate;
+}
+
+.time {
+  min-width: 5ch;
+  font-family: var(--font-rounded);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.statusLabel {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+
+.bar[data-status='paused'] .dot {
+  background: rgb(255 255 255 / 0.45);
+  box-shadow: none;
+  animation: none;
+}
+
+.bar[data-status='paused'] .time {
+  color: var(--color-text-secondary);
+}
+
+.readouts {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.readout {
+  display: flex;
+  gap: 4px;
+}
+
+.readout dd {
+  min-width: 4ch;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.message {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-left: var(--space-1);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+@keyframes pulse {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}

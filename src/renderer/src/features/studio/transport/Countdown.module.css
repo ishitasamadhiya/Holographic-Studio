@@ -1,0 +1,36 @@
+.countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  /* Sits a little above centre, clear of the record bar. */
+  padding-bottom: 8vh;
+  pointer-events: none;
+}
+
+.number {
+  color: rgb(255 255 255 / 0.94);
+  font-family: var(--font-rounded);
+  font-size: clamp(132px, 26vh, 260px);
+  font-weight: 200;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  text-shadow:
+    0 2px 6px rgb(0 0 0 / 0.45),
+    0 0 48px rgb(0 0 0 / 0.5);
+  animation: tick var(--duration-slow) var(--ease-out);
+}
+
+@keyframes tick {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .number {
+    animation: none;
+  }
+}
