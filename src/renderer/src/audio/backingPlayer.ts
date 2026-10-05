@@ -1,6 +1,6 @@
 // Backing-track transport: one AudioBufferSourceNode per run, scheduled on exact frames.
 import { renderedSongPosition, type SongClockState } from './songClock';
-import { frameToTime } from './timing';
+import { frameToTime, resolveScheduleFrame, schedulingLeadSec } from './timing';
 
 /** Fade at a mid-song start and at every stop, so the transport never clicks. */
 const EDGE_FADE_SEC = 0.005;
@@ -12,7 +12,7 @@ interface BackingVoice {
   /** Audio-clock time the fade-in starts, or null when the run starts at full level. */
   fadeInFromSec: number | null;
   clock: SongClockState;
-  /** True once a stop has been scheduled (as opposed to playing through to the end). */
+  /** True once the run is cut short; it then never counts as having played to the end. */
   stopping: boolean;
 }
 
@@ -108,14 +108,32 @@ export class BackingPlayer {
     return startTime;
   }
 
-  /** Stops playback on `stopFrame` and returns the track position there. */
+  /**
+   * Stops playback on `stopFrame` and returns the track position there. A run that reaches
+   * the end of the track first is left to finish, so its end is still reported.
+   */
   stop(stopFrame: number): number {
     const voice = this.voice;
     if (voice === null || voice.stopping) return this.restingPositionSec;
+    const frame = Math.max(stopFrame, voice.clock.startFrame);
+    if (frame >= voice.clock.stopFrame) {
+      return renderedSongPosition(voice.clock, voice.clock.stopFrame, this.context.sampleRate);
+    }
+    this.fadeOut(voice, frame);
+    this.events.onClockChanged(voice.clock);
+    return this.restingPositionSec;
+  }
 
+  /** Silences everything within a few milliseconds and forgets the transport state. */
+  dispose(): void {
+    this.cut();
+    this.buffer = null;
+  }
+
+  /** Cuts a run short on `frame`, which lies inside the run, with a fade so it never clicks. */
+  private fadeOut(voice: BackingVoice, frame: number): void {
     const { context } = this;
     const sampleRate = context.sampleRate;
-    const frame = Math.min(Math.max(stopFrame, voice.clock.startFrame), voice.clock.stopFrame);
     this.restingPositionSec = renderedSongPosition(voice.clock, frame, sampleRate);
     voice.stopping = true;
     voice.clock.stopFrame = frame;
@@ -130,26 +148,28 @@ export class BackingPlayer {
       voice.edge.gain.linearRampToValueAtTime(0, stopTime);
     }
     voice.source.stop(stopTime);
-    this.events.onClockChanged(voice.clock);
-    return this.restingPositionSec;
   }
 
-  /** Silences everything immediately and forgets the transport state. */
-  dispose(): void {
-    this.cut();
-    this.buffer = null;
-  }
-
-  /** Ends the current run right now, without reporting it as "played to the end". */
+  /**
+   * Ends the current run as soon as the audio thread can still fade it out (a stop already
+   * scheduled stands), without reporting it as "played to the end". It releases itself once
+   * it has gone quiet.
+   */
   private cut(): void {
     const voice = this.voice;
     if (voice === null) return;
-    voice.stopping = true;
-    this.release(voice);
-    try {
-      voice.source.stop();
-    } catch {
-      // Already stopped.
+    this.voice = null;
+    if (!voice.stopping) {
+      const { context } = this;
+      const frame = resolveScheduleFrame(
+        undefined,
+        context.currentTime,
+        schedulingLeadSec(context.baseLatency, context.sampleRate) + EDGE_FADE_SEC,
+        context.sampleRate,
+      );
+      const inside = Math.max(frame, voice.clock.startFrame);
+      if (inside < voice.clock.stopFrame) this.fadeOut(voice, inside);
+      voice.stopping = true;
     }
     this.events.onClockChanged(null);
   }
@@ -158,9 +178,9 @@ export class BackingPlayer {
     voice.source.onended = null;
     voice.source.disconnect();
     voice.edge.disconnect();
-    if (this.voice !== voice) return;
-    this.voice = null;
-    if (voice.stopping) return;
+    if (this.voice === voice) this.voice = null;
+    // Cut short, or followed by a run that is playing now: the track has not ended.
+    if (voice.stopping || this.voice !== null) return;
     this.restingPositionSec = this.buffer?.duration ?? 0;
     this.events.onEnded();
   }
