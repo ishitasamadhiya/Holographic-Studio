@@ -45,6 +45,15 @@ export function createMainWindow(): BrowserWindow {
   });
 
   const page = process.env.HOLO_E2E_PAGE ?? 'index.html';
-  void window.loadURL(rendererUrl(page));
+  const pageUrl = rendererUrl(page);
+
+  // The window only ever shows the app itself. Without this, dropping a file outside a drop
+  // zone would navigate to that file and replace the whole UI.
+  const appOrigin = new URL(pageUrl).origin;
+  window.webContents.on('will-navigate', (event, url) => {
+    if (new URL(url).origin !== appOrigin) event.preventDefault();
+  });
+
+  void window.loadURL(pageUrl);
   return window;
 }
