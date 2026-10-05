@@ -116,7 +116,7 @@
   border-color: rgb(var(--color-danger-rgb) / 0.38);
   background: linear-gradient(var(--button-film), var(--button-film)), var(--glass-fill-regular);
   backdrop-filter: var(--glass-backdrop);
-  color: var(--color-danger);
+  color: var(--color-danger-text);
 }
 
 .danger:hover:not(:disabled, .loading) {

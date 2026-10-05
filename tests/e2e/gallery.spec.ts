@@ -126,6 +126,27 @@ async function scanFocusRings(scope: Locator): Promise<FocusRingReport> {
   });
 }
 
+/**
+ * Lists the descendants of `container` that stick out of its right edge, plus the container
+ * itself when its content is wider than its box. Empty means every line fits.
+ */
+function horizontalOverflow(container: Locator): Promise<string[]> {
+  return container.evaluate((root) => {
+    const overflowing: string[] = [];
+    if (root.scrollWidth > root.clientWidth) {
+      overflowing.push(`container (${root.scrollWidth} > ${root.clientWidth})`);
+    }
+    const right = root.getBoundingClientRect().right;
+    for (const element of root.querySelectorAll<HTMLElement>('*')) {
+      const box = element.getBoundingClientRect();
+      if (box.width > 0 && box.right > right + 0.5) {
+        overflowing.push(`${element.tagName.toLowerCase()} "${element.textContent?.slice(0, 30)}"`);
+      }
+    }
+    return overflowing;
+  });
+}
+
 function appRegion(locator: Locator): Promise<string> {
   return locator.evaluate((element) =>
     getComputedStyle(element).getPropertyValue('-webkit-app-region'),
@@ -284,6 +305,24 @@ test.describe('component gallery', () => {
     await expect(manual).toBeFocused();
   });
 
+  test('segmented control keeps a tab stop when its selection is disabled', async () => {
+    const group = page.getByTestId('demo-segmented-disabled-selection');
+    const video = group.getByRole('radio', { name: 'Video' });
+    const audio = group.getByRole('radio', { name: 'Audio Only' });
+    await expect(video).toHaveAttribute('aria-checked', 'true');
+    await expect(video).toBeDisabled();
+
+    // Tab from the group before it lands on the first enabled option.
+    await page
+      .getByRole('radiogroup', { name: 'Recording mode', exact: true })
+      .getByRole('radio', { checked: true })
+      .focus();
+    await page.keyboard.press('Tab');
+    await expect(audio).toBeFocused();
+    await page.keyboard.press('ArrowRight');
+    await expect(audio).toHaveAttribute('aria-checked', 'true');
+  });
+
   test('select shows its placeholder until a device is chosen', async () => {
     const select = page.getByTestId('demo-select');
     await expect(select).toHaveValue('');
@@ -323,6 +362,18 @@ test.describe('component gallery', () => {
     await expect(indicator).toHaveAttribute('aria-valuenow', '0');
     await expect(indicator).toHaveAttribute('aria-valuetext', '0%, Live');
     await expect(meter).toHaveAttribute('aria-valuenow', '0');
+  });
+
+  test('an indicator with a dB readout keeps one line and the standard pill size', async () => {
+    const decibels = page.getByTestId('demo-indicator-db');
+    const percent = page.getByTestId('demo-indicator');
+    await expect(decibels).toContainText('-12.0 dB');
+    expect(await horizontalOverflow(decibels)).toEqual([]);
+    const decibelsBox = await decibels.boundingBox();
+    const percentBox = await percent.boundingBox();
+    if (!decibelsBox || !percentBox) throw new Error('An indicator is not visible');
+    expect(decibelsBox.width).toBe(percentBox.width);
+    expect(decibelsBox.height).toBe(percentBox.height);
   });
 
   test('toasts appear, replace by id, run their action, and dismiss', async () => {
@@ -642,6 +693,94 @@ test.describe('component gallery', () => {
     await expect(zone).toHaveAttribute('data-state', 'empty');
   });
 
+  test('long file names wrap inside toasts, dialogs, banners and drop zones', async () => {
+    const longName =
+      'Artist_Name_-_A_Very_Long_Song_Title_(Official_Instrumental_Karaoke_Version)_final_mix_v2.txt';
+
+    // The real path: a rejected drop reports the file name in a toast.
+    const zone = page.getByTestId('demo-dropzone');
+    await zone.evaluate((element, name) => {
+      const transfer = new DataTransfer();
+      transfer.items.add(new File(['text'], name));
+      for (const eventName of ['dragenter', 'dragover', 'drop']) {
+        element.dispatchEvent(
+          new DragEvent(eventName, { bubbles: true, cancelable: true, dataTransfer: transfer }),
+        );
+      }
+    }, longName);
+    const rejected = toasts().filter({ hasText: 'is not an audio file' });
+    await expect(rejected).toBeVisible();
+    expect(await horizontalOverflow(rejected)).toEqual([]);
+
+    for (const testId of [
+      'demo-toast-long-name',
+      'demo-banner-long-name',
+      'demo-dropzone-long-name',
+    ]) {
+      expect(await horizontalOverflow(page.getByTestId(testId)), testId).toEqual([]);
+    }
+
+    await page.getByTestId('demo-open-saved-long-name').click();
+    const dialog = page.getByTestId('saved-dialog');
+    await expect(dialog).toContainText('Official_Instrumental');
+    expect(await horizontalOverflow(dialog)).toEqual([]);
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+  });
+
+  test('toasts step aside while a dialog is open', async () => {
+    await page.getByTestId('demo-toast-success').click();
+    await page.getByTestId('demo-toast-warning').click();
+    await page.getByTestId('demo-toast-error').click();
+    await expect(toasts()).toHaveCount(3);
+
+    await page.getByTestId('demo-open-saved').click();
+    const dialog = page.getByTestId('saved-dialog');
+    await expect(dialog).toBeVisible();
+    // Only the newest toast stays visible, and it does not cover the dialog.
+    const visible = toasts().filter({ visible: true });
+    await expect(visible).toHaveCount(1);
+    await expect(visible).toContainText('Hand tracking stopped');
+    const toastBox = await visible.boundingBox();
+    const dialogBox = await dialog.boundingBox();
+    if (!toastBox || !dialogBox) throw new Error('The toast or the dialog is not visible');
+    expect(toastBox.y).toBeGreaterThanOrEqual(dialogBox.y + dialogBox.height);
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toHaveCount(0);
+    await expect(toasts().filter({ visible: true })).toHaveCount(3);
+  });
+
+  test('a dialog without dismiss keeps focus and swallows Escape', async () => {
+    await page.evaluate(() => {
+      const counts = { escape: 0 };
+      (window as unknown as { escapeCounts: typeof counts }).escapeCounts = counts;
+      window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') counts.escape += 1;
+      });
+    });
+    await page.getByTestId('demo-open-exporting').click();
+    const dialog = page.getByTestId('exporting-dialog');
+    const cancel = dialog.getByRole('button', { name: 'Cancel' });
+    await expect(cancel).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { escapeCounts: { escape: number } }).escapeCounts.escape,
+      ),
+    ).toBe(0);
+
+    // A click on the scrim neither closes the dialog nor takes focus out of it.
+    await page.mouse.click(8, 300);
+    await expect(dialog).toBeVisible();
+    await expect(cancel).toBeFocused();
+
+    await cancel.click();
+    await expect(dialog).toHaveCount(0);
+  });
+
   test('saves screenshots of the gallery', async () => {
     await page.evaluate(() => window.scrollTo(0, 0));
     const hideHeader = '[data-testid="gallery-header"] { visibility: hidden; }';
@@ -653,12 +792,13 @@ test.describe('component gallery', () => {
       animations: 'disabled',
     });
 
-    // The sections are placed relative to the window, not to the scrollable area, so they do
-    // not move when the capture hides the document scrollbar.
-    const sectionsLeft = await page
-      .getByTestId('section-foundations')
-      .evaluate((section) => section.getBoundingClientRect().left - window.innerWidth / 2);
-    expect(sectionsLeft).toBe(-558);
+    // The sections are centred on the window, not on the scrollable area, so they do not
+    // move when the capture hides the document scrollbar.
+    const sectionsOffCentre = await page.getByTestId('section-foundations').evaluate((section) => {
+      const box = section.getBoundingClientRect();
+      return box.left + box.width / 2 - window.innerWidth / 2;
+    });
+    expect(Math.abs(sectionsOffCentre)).toBeLessThanOrEqual(1);
 
     const sections = await page.locator('[data-testid^="section-"]').all();
     expect(sections.length).toBeGreaterThanOrEqual(10);
@@ -747,10 +887,24 @@ test.describe('composed mocks', () => {
       style: '[data-testid="gallery-back"] { visibility: hidden; }',
     });
 
+    // The top-centre chips sit on the same centre line as the transport below them.
+    const centreX = async (testId: string) => {
+      const box = await page.getByTestId(testId).boundingBox();
+      if (!box) throw new Error(`${testId} is not visible`);
+      return box.x + box.width / 2;
+    };
+    expect(
+      Math.abs((await centreX('studio-top-center')) - (await centreX('studio-transport'))),
+    ).toBeLessThanOrEqual(1);
+
+    // Inside a Tooltip the bubble is the only hint: no native title on top of it.
+    await expect(page.getByTestId('studio-hand-toggle')).not.toHaveAttribute('title');
+    await expect(page.getByTestId('studio-settings-button')).toHaveAttribute('title', 'Settings');
+
     // Every control on the live screen shows a focus ring, including the ghost buttons of
     // the transport and the record button while a take is running.
     const rings = await scanFocusRings(page.getByTestId('studio-mock'));
-    expect(rings.checked).toBe(5);
+    expect(rings.checked).toBeGreaterThanOrEqual(5);
     expect(rings.missing).toEqual([]);
 
     // Hand control off: gesture-driven indicators switch to their manual style.

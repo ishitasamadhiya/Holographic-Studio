@@ -18,6 +18,11 @@ export function clampToRange(value: number, { min, max }: SliderRange): number {
   return Math.min(max, Math.max(min, value));
 }
 
+/** The value the slider shows and reports: clamped to the range, and the minimum if not finite. */
+export function sanitizeValue(value: number, range: SliderRange): number {
+  return Number.isFinite(value) ? clampToRange(value, range) : range.min;
+}
+
 /**
  * Rounds to the nearest step counted from `min`, then clamps. The final rounding removes
  * binary floating-point noise (0.1 + 0.2 → 0.3, not 0.30000…04); it keeps as many decimals
@@ -65,6 +70,29 @@ export function snapToDetent(
   return Math.abs(value - detent) <= tolerance ? detent : value;
 }
 
+/** How far a value may sit from a grid point (in steps) and still count as on it. */
+const GRID_TOLERANCE_STEPS = 1e-9;
+
+/**
+ * The neighbouring grid point in `direction`. A value between grid points moves to the next
+ * one rather than one whole step on (from the max of 0..1 with step 0.3, down is 0.9, not
+ * 0.6), as a native range input does. Without a grid (step <= 0) it moves a hundredth of the
+ * range, so the arrow keys never go dead.
+ */
+export function stepToNeighbour(value: number, direction: 1 | -1, range: SliderRange): number {
+  const { min, max, step } = range;
+  if (step <= 0) {
+    const moved = value + (direction * (max - min)) / 100;
+    return clampToRange(Number(moved.toPrecision(12)), range);
+  }
+  const position = (value - min) / step;
+  const index =
+    direction === 1
+      ? Math.floor(position + GRID_TOLERANCE_STEPS) + 1
+      : Math.ceil(position - GRID_TOLERANCE_STEPS) - 1;
+  return snapToStep(min + index * step, range);
+}
+
 /**
  * The value after a key press, or null when the key is not one the slider handles.
  * Arrows move one step, Shift+arrow and Page Up/Down move `largeStep`, Home/End jump to the ends.
@@ -76,14 +104,13 @@ export function valueAfterKey(
   range: SliderRange,
   largeStep: number,
 ): number | null {
-  const small = shiftKey ? largeStep : range.step;
   switch (key) {
     case 'ArrowRight':
     case 'ArrowUp':
-      return snapToStep(value + small, range);
+      return shiftKey ? snapToStep(value + largeStep, range) : stepToNeighbour(value, 1, range);
     case 'ArrowLeft':
     case 'ArrowDown':
-      return snapToStep(value - small, range);
+      return shiftKey ? snapToStep(value - largeStep, range) : stepToNeighbour(value, -1, range);
     case 'PageUp':
       return snapToStep(value + largeStep, range);
     case 'PageDown':

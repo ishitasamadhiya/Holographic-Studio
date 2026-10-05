@@ -23,11 +23,13 @@
   inset: 0 0 auto;
   z-index: var(--z-floating);
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  /* Equal side columns and equal padding put the centre group on the window's centre line,
+     above the transport; only the start group steps clear of the traffic lights. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   height: 60px;
-  padding: 0 var(--studio-edge) 0 var(--titlebar-safe-left);
+  padding: 0 var(--studio-edge);
 }
 
 .topStart,
@@ -37,6 +39,10 @@
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+}
+
+.topStart {
+  padding-left: calc(var(--titlebar-safe-left) - var(--studio-edge));
 }
 
 .topEnd {
@@ -84,6 +90,13 @@
 
 .edgeRight {
   right: var(--studio-edge);
+  transition: right var(--duration-slow) var(--ease-out);
+}
+
+/* The settings sheet (380 px wide, inset by --space-3) slides over the right edge; the
+   indicators step aside so changes can still be judged live. */
+.edgeRightBesideSheet {
+  right: calc(380px + var(--space-3) + var(--studio-edge));
 }
 
 /* ── Transport ─────────────────────────────────────────────────────────── */

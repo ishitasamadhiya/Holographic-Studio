@@ -15,6 +15,7 @@ import {
   Toast,
   toastStore,
 } from '../index';
+import { LONG_FILE_NAME } from './samples';
 import { Section, Specimen, Stage } from './Section';
 import styles from './FeedbackSection.module.css';
 
@@ -146,6 +147,9 @@ export function FeedbackSection() {
               Show the dismissed banner again
             </Button>
           )}
+          <Banner tone="info" data-testid="demo-banner-long-name">
+            Using {LONG_FILE_NAME} as the reference song.
+          </Banner>
         </div>
       </Stage>
 
@@ -181,6 +185,17 @@ export function FeedbackSection() {
               durationMs: null,
             }}
             onDismiss={() => undefined}
+          />
+          <Toast
+            toast={{
+              id: 'static-long-name',
+              tone: 'warning',
+              title: `“${LONG_FILE_NAME}” is not an audio file.`,
+              description: LONG_FILE_NAME,
+              durationMs: null,
+            }}
+            onDismiss={() => undefined}
+            data-testid="demo-toast-long-name"
           />
         </div>
         <GlassPanel variant="strong" padding="lg" className={styles.panel}>

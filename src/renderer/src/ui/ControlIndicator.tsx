@@ -40,7 +40,7 @@ export interface ControlIndicatorProps extends Omit<
   'children' | 'role'
 > {
   ref?: Ref<ControlIndicatorHandle>;
-  /** Control name, e.g. "Autotune". */
+  /** Control name, e.g. "Autotune". About nine characters fit; longer names are ellipsized. */
   label: string;
   status: ControlIndicatorStatus;
   /** Declarative value (0..1). Live updates should use the ref's setValue instead. */
@@ -48,7 +48,10 @@ export interface ControlIndicatorProps extends Omit<
   icon?: ReactNode;
   /** Draws a small notch at this value (e.g. unity gain for volume). */
   unityValue?: number;
-  /** Text for the readout. Defaults to a whole percentage. */
+  /**
+   * Text for the readout. Defaults to a whole percentage. Texts longer than five characters
+   * (a dB value such as "-12.0 dB") are set smaller; up to eight characters fit.
+   */
   formatValue?: (value: number) => string;
   /** Overrides the short status caption ("Live", "Hold", …). */
   statusLabel?: string;
@@ -66,6 +69,17 @@ const STATUS_LABELS: Record<ControlIndicatorStatus, string> = {
 
 /** Screen readers get at most one update per interval; the visual readout changes every frame. */
 const ARIA_UPDATE_INTERVAL_MS = 400;
+
+/** Readouts longer than this ("100%" is four characters) step down a type size. */
+const SHORT_READOUT_MAX_CHARS = 5;
+
+/**
+ * Whether a formatter produces long readouts. Decided once per formatter from texts across
+ * the range rather than per value, so the type size never jumps while the value moves.
+ */
+function hasLongReadouts(formatValue: (value: number) => string): boolean {
+  return [0, 0.5, 1].some((value) => formatValue(value).length > SHORT_READOUT_MAX_CHARS);
+}
 
 /**
  * The live readout for one vocal control, placed at the edge of the video: a slim glass pill
@@ -160,7 +174,10 @@ export function ControlIndicator({
       style={{ ...cssVariables, ...style }}
       data-status={status}
     >
-      <span ref={readoutRef} className={styles.readout} />
+      <span
+        ref={readoutRef}
+        className={cx(styles.readout, hasLongReadouts(formatValue) && styles.longReadout)}
+      />
       <div className={styles.track} aria-hidden="true">
         <div className={styles.fill} />
         {unityValue !== undefined && <div className={styles.unity} />}

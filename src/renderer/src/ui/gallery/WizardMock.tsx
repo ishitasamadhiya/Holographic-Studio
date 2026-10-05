@@ -6,7 +6,6 @@ import {
   Button,
   ChevronLeftIcon,
   ChevronRightIcon,
-  cx,
   FileDropZone,
   GlassPanel,
   HeadphonesIcon,
@@ -25,11 +24,11 @@ const STEPS = [
 ];
 
 /** One step of the first-run wizard ("Add your song"), assembled from design-system parts. */
-export function WizardMock({ className }: { className?: string }) {
+export function WizardMock() {
   const [stepIndex, setStepIndex] = useState(2);
 
   return (
-    <div className={cx(styles.wizard, className)} data-testid="wizard-mock">
+    <div className={styles.wizard} data-testid="wizard-mock">
       <div className={styles.aurora} aria-hidden="true" />
       <GlassPanel
         as="section"

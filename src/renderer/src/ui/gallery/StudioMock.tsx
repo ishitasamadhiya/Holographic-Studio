@@ -15,7 +15,6 @@ import {
   PauseIcon,
   PlayIcon,
   RecordButton,
-  type RecordButtonState,
   RestartIcon,
   SettingsIcon,
   SparklesIcon,
@@ -32,10 +31,8 @@ import styles from './StudioMock.module.css';
 export interface StudioMockProps {
   /** Draws pretend traffic lights (for the framed preview; the real window has real ones). */
   showWindowChrome?: boolean;
-  initialPhase?: RecordButtonState;
   /** Opens the settings sheet straight away. */
   settingsInitiallyOpen?: boolean;
-  className?: string;
 }
 
 /**
@@ -45,11 +42,9 @@ export interface StudioMockProps {
  */
 export function StudioMock({
   showWindowChrome = false,
-  initialPhase = 'recording',
   settingsInitiallyOpen = false,
-  className,
 }: StudioMockProps) {
-  const recorder = useMockRecorder({ phase: initialPhase, countdown: 3, elapsedSec: 84 });
+  const recorder = useMockRecorder({ phase: 'recording', countdown: 3, elapsedSec: 84 });
   const [handControl, setHandControl] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(settingsInitiallyOpen);
 
@@ -78,7 +73,7 @@ export function StudioMock({
   const gestureStatus = handControl ? 'gesture-live' : 'manual';
 
   return (
-    <div className={cx(styles.studio, className)} data-testid="studio-mock">
+    <div className={styles.studio} data-testid="studio-mock">
       <WebcamBackdrop className={styles.backdrop} />
 
       {/* Only the full-window mock should move the real window when its top bar is dragged. */}
@@ -96,7 +91,7 @@ export function StudioMock({
           )}
           <Chip icon={<MusicNoteIcon />}>Midnight City (Instrumental)</Chip>
         </div>
-        <div className={styles.topCenter}>
+        <div className={styles.topCenter} data-testid="studio-top-center">
           <StatusChip state="ready" data-testid="studio-melody-chip">
             Reference melody ready
           </StatusChip>
@@ -136,7 +131,9 @@ export function StudioMock({
           data-testid="studio-indicator-echo"
         />
       </div>
-      <div className={cx(styles.edge, styles.edgeRight)}>
+      <div
+        className={cx(styles.edge, styles.edgeRight, isSettingsOpen && styles.edgeRightBesideSheet)}
+      >
         <ControlIndicator
           ref={autotuneRef}
           label="Autotune"

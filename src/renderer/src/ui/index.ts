@@ -2,11 +2,14 @@
 // tokens and the global base styles, so screens only ever need this one import.
 //
 // Conventions shared by every component:
-// - `className` and `style` go to the component's outermost element.
+// - `className` and `style` go to the component's outermost element. Sheet and Modal are the
+//   exception: they style the panel / dialog, not the full-window layer around it.
 // - Every other DOM attribute (`id`, `data-*`, `aria-*`, event handlers) is forwarded to
 //   the element that carries the component's role. That is the outermost element, except
 //   for Slider (the `role="slider"` element), Select (the <select>) and ProgressBar (the
 //   `role="progressbar"` track). Handlers a component needs for itself are not accepted.
+// - Toast and ToastViewport carry `data-testid="toast"` / `"toast-viewport"` by default (end-
+//   to-end suites rely on them); a `data-testid` prop replaces it.
 // - `ref`, where offered, points at that same element; LevelMeter and ControlIndicator
 //   expose an imperative handle instead.
 // - `label` is always the accessible name. Components with a caption of their own (Slider,

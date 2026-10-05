@@ -49,6 +49,8 @@
   --color-warning: #ffd27a;
   --color-danger-rgb: 255 141 133;
   --color-danger: rgb(var(--color-danger-rgb));
+  /* Paler coral for text on a danger-tinted surface, where full coral falls below 4.5:1. */
+  --color-danger-text: #ffc2bc;
   --color-info: var(--holo-ice);
 
   /* ── Glass surfaces ──────────────────────────────────────────────────── */

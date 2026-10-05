@@ -26,6 +26,7 @@
 }
 
 .rowLabel {
+  overflow-wrap: anywhere;
   color: var(--color-text-primary);
   font-size: var(--text-md);
   font-weight: var(--weight-medium);
@@ -40,6 +41,7 @@
 }
 
 .hint {
+  overflow-wrap: anywhere;
   color: var(--color-text-tertiary);
   font-size: var(--text-sm);
   line-height: var(--leading-snug);

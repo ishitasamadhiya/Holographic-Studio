@@ -11,6 +11,7 @@ import {
   HandIcon,
   IconButton,
   Modal,
+  ProgressBar,
   RestartIcon,
   SegmentedControl,
   SettingsIcon,
@@ -19,6 +20,7 @@ import {
   Tooltip,
   TrashIcon,
 } from '../index';
+import { LONG_FILE_NAME } from './samples';
 import { Section, Specimen, Stage } from './Section';
 import { SettingsSheetMock } from './SettingsSheetMock';
 import styles from './OverlaysSection.module.css';
@@ -30,6 +32,8 @@ const STEPS = [
   { id: 'hands', label: 'Hand controls' },
   { id: 'ready', label: 'Ready to record' },
 ];
+
+const TAKE_FILE_NAME = 'Holographic-Studio-Take-2026-10-05-2114.mp4';
 
 const SOURCE_OPTIONS = [
   { value: 'gesture', label: 'Gesture' },
@@ -49,8 +53,10 @@ export function OverlaysSection() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isHandSheetOpen, setIsHandSheetOpen] = useState(false);
   const [isSavedOpen, setIsSavedOpen] = useState(false);
+  const [savedFileName, setSavedFileName] = useState(TAKE_FILE_NAME);
   const [isDiscardOpen, setIsDiscardOpen] = useState(false);
   const [isSaveOptionsOpen, setIsSaveOptionsOpen] = useState(false);
+  const [isExportingOpen, setIsExportingOpen] = useState(false);
   const [stepIndex, setStepIndex] = useState(2);
   const [sources, setSources] = useState<Record<ControlId, ControlSource>>({
     autotune: 'gesture',
@@ -83,11 +89,29 @@ export function OverlaysSection() {
           </Button>
         </Specimen>
         <Specimen label="dialogs">
-          <Button onClick={() => setIsSavedOpen(true)} data-testid="demo-open-saved">
+          <Button
+            onClick={() => {
+              setSavedFileName(TAKE_FILE_NAME);
+              setIsSavedOpen(true);
+            }}
+            data-testid="demo-open-saved"
+          >
             Save succeeded
+          </Button>
+          <Button
+            onClick={() => {
+              setSavedFileName(LONG_FILE_NAME.replace(/\.mp3$/, '.mp4'));
+              setIsSavedOpen(true);
+            }}
+            data-testid="demo-open-saved-long-name"
+          >
+            …with a long file name
           </Button>
           <Button onClick={() => setIsSaveOptionsOpen(true)} data-testid="demo-open-save-options">
             Save options…
+          </Button>
+          <Button onClick={() => setIsExportingOpen(true)} data-testid="demo-open-exporting">
+            Exporting (no dismiss)
           </Button>
           <Button
             variant="danger"
@@ -99,12 +123,12 @@ export function OverlaysSection() {
         </Specimen>
         <Specimen label="tooltips (hover or focus)">
           <Tooltip label="Start over">
-            <IconButton label="Start over" title="" data-testid="demo-tooltip-target">
+            <IconButton label="Start over" data-testid="demo-tooltip-target">
               <RestartIcon />
             </IconButton>
           </Tooltip>
           <Tooltip label="Settings" placement="right">
-            <IconButton label="Settings" title="">
+            <IconButton label="Settings">
               <SettingsIcon />
             </IconButton>
           </Tooltip>
@@ -189,7 +213,7 @@ export function OverlaysSection() {
         onClose={() => setIsSavedOpen(false)}
         icon={<CheckIcon />}
         title="Your video is saved"
-        description="Holographic-Studio-Take-2026-10-05-2114.mp4 is in your Movies folder."
+        description={`${savedFileName} is in your Movies folder.`}
         data-testid="saved-dialog"
         actions={
           <>
@@ -202,6 +226,23 @@ export function OverlaysSection() {
           </>
         }
       />
+
+      {/* Escape and outside clicks do nothing: only Cancel ends it. */}
+      <Modal
+        open={isExportingOpen}
+        onClose={() => setIsExportingOpen(false)}
+        dismissible={false}
+        title="Saving your video"
+        description="This takes a moment. Keep the app open."
+        data-testid="exporting-dialog"
+        actions={
+          <Button data-autofocus onClick={() => setIsExportingOpen(false)}>
+            Cancel
+          </Button>
+        }
+      >
+        <ProgressBar label="Saving your video" hideLabel />
+      </Modal>
 
       <Modal
         open={isDiscardOpen}

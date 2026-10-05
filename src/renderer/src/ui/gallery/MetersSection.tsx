@@ -13,6 +13,7 @@ import {
   VolumeIcon,
   WaveformIcon,
 } from '../index';
+import { formatDecibels } from './samples';
 import { Section, Specimen, Stage } from './Section';
 import styles from './MetersSection.module.css';
 
@@ -65,6 +66,26 @@ export function MetersSection() {
             status="gesture-live"
             value={VOCAL_VOLUME_UNITY}
             unityValue={VOCAL_VOLUME_UNITY}
+          />
+        </Specimen>
+        <Specimen label="dB readout">
+          <ControlIndicator
+            label="Volume"
+            icon={<VolumeIcon />}
+            status="manual"
+            value={0}
+            unityValue={VOCAL_VOLUME_UNITY}
+            formatValue={formatDecibels}
+            data-testid="demo-indicator-db"
+          />
+          <ControlIndicator
+            label="Volume"
+            icon={<VolumeIcon />}
+            status="manual"
+            value={0.75}
+            unityValue={VOCAL_VOLUME_UNITY}
+            formatValue={formatDecibels}
+            size="sm"
           />
         </Specimen>
         <Specimen label="small">

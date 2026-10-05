@@ -1,5 +1,6 @@
-import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
+import { type ButtonHTMLAttributes, type ReactNode, type Ref, useContext } from 'react';
 import { cx } from './internal/classNames';
+import { InsideTooltipContext } from './internal/tooltipContext';
 import styles from './IconButton.module.css';
 
 export type IconButtonVariant = 'glass' | 'ghost' | 'solid';
@@ -9,7 +10,7 @@ export interface IconButtonProps extends Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   'aria-label' | 'children'
 > {
-  /** Accessible name, also shown as the native tooltip. */
+  /** Accessible name, also shown as the native tooltip (unless wrapped in a Tooltip). */
   label: string;
   /** The icon. */
   children: ReactNode;
@@ -33,6 +34,7 @@ export function IconButton({
   ref,
   ...rest
 }: IconButtonProps) {
+  const isInsideTooltip = useContext(InsideTooltipContext);
   return (
     <button
       ref={ref}
@@ -40,7 +42,7 @@ export function IconButton({
       className={cx(styles.button, styles[variant], styles[size], className)}
       aria-label={label}
       aria-pressed={pressed}
-      title={title ?? label}
+      title={title ?? (isInsideTooltip ? undefined : label)}
       {...rest}
     >
       {children}

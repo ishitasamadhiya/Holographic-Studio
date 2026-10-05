@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { VOCAL_VOLUME_UNITY, vocalVolumeToDb } from '@shared/controls';
+import { VOCAL_VOLUME_UNITY } from '@shared/controls';
 import { SUPPORTED_AUDIO_EXTENSIONS } from '@shared/ipc';
 import {
   CameraIcon,
@@ -19,6 +19,7 @@ import {
   Toggle,
   VolumeIcon,
 } from '../index';
+import { formatDecibels, LONG_FILE_NAME } from './samples';
 import { Section, Stage } from './Section';
 import styles from './InputsSection.module.css';
 
@@ -28,6 +29,11 @@ const SOURCE_OPTIONS = [
 ] as const;
 const MODE_OPTIONS = [
   { value: 'video', label: 'Video' },
+  { value: 'audio', label: 'Audio Only' },
+] as const;
+// No camera: the saved choice (Video) is unavailable, so the group's tab stop moves to Audio Only.
+const NO_CAMERA_MODE_OPTIONS = [
+  { value: 'video', label: 'Video', disabled: true },
   { value: 'audio', label: 'Audio Only' },
 ] as const;
 const RESOLUTION_OPTIONS = [
@@ -40,15 +46,11 @@ const MICROPHONES = [
   { value: 'scarlett', label: 'Scarlett Solo USB' },
 ];
 
-function formatDecibels(normalized: number): string {
-  const decibels = vocalVolumeToDb(normalized);
-  return `${decibels > 0 ? '+' : ''}${decibels.toFixed(1)} dB`;
-}
-
 interface DropExample {
   state: FileDropZoneState;
   fileName?: string;
   statusText?: string;
+  'data-testid'?: string;
 }
 
 const DROP_EXAMPLES: readonly DropExample[] = [
@@ -63,6 +65,12 @@ const DROP_EXAMPLES: readonly DropExample[] = [
     fileName: 'notes.txt',
     statusText: 'That file could not be opened. Try an MP3, WAV, or M4A file.',
   },
+  {
+    state: 'error',
+    fileName: LONG_FILE_NAME,
+    statusText: `“${LONG_FILE_NAME}” could not be read.`,
+    'data-testid': 'demo-dropzone-long-name',
+  },
 ];
 
 export function InputsSection() {
@@ -71,6 +79,7 @@ export function InputsSection() {
   const [committedVolume, setCommittedVolume] = useState(0.62);
   const [source, setSource] = useState<'gesture' | 'manual'>('gesture');
   const [mode, setMode] = useState<'video' | 'audio'>('video');
+  const [modeWithoutCamera, setModeWithoutCamera] = useState<'video' | 'audio'>('video');
   const [resolution, setResolution] = useState<'720p' | '1080p' | '4k'>('1080p');
   const [monitoring, setMonitoring] = useState(true);
   const [microphone, setMicrophone] = useState<string | null>(null);
@@ -122,6 +131,14 @@ export function InputsSection() {
             value={mode}
             onChange={setMode}
             fullWidth
+          />
+          <SegmentedControl
+            label="Recording mode without a camera"
+            options={NO_CAMERA_MODE_OPTIONS}
+            value={modeWithoutCamera}
+            onChange={setModeWithoutCamera}
+            fullWidth
+            data-testid="demo-segmented-disabled-selection"
           />
           <SegmentedControl
             label="Resolution"
@@ -208,7 +225,7 @@ export function InputsSection() {
           <h3 className={styles.panelTitle}>File states</h3>
           {DROP_EXAMPLES.map((example) => (
             <FileDropZone
-              key={example.state}
+              key={example.fileName}
               label="Original song"
               extensions={SUPPORTED_AUDIO_EXTENSIONS}
               onBrowse={() => undefined}

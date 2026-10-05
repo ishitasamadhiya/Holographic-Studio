@@ -11,6 +11,7 @@ import { useFieldControlProps } from './Field';
 import { cx } from './internal/classNames';
 import { formatPercent } from './internal/numberFormat';
 import {
+  sanitizeValue,
   type SliderRange,
   snapToDetent,
   valueAfterKey,
@@ -81,11 +82,13 @@ export function Slider({
   const field = useFieldControlProps({ ...rest, 'aria-label': label ?? rest['aria-label'] });
   const railRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
-  const latestValue = useRef(value);
 
   const range: SliderRange = { min, max, step };
-  const fraction = valueToFraction(value, range);
-  const valueText = formatValue ? formatValue(value) : formatPercent(fraction);
+  // Everything shown, announced and stepped from uses this, never the raw prop.
+  const current = sanitizeValue(value, range);
+  const latestValue = useRef(current);
+  const fraction = valueToFraction(current, range);
+  const valueText = formatValue ? formatValue(current) : formatPercent(fraction);
   const showsHeader = label !== undefined && !hideLabel;
 
   // Several pointer events can arrive between two renders, so drags compare against a ref
@@ -98,7 +101,7 @@ export function Slider({
 
   const valueAtPointer = (clientX: number): number => {
     const rail = railRef.current;
-    if (!rail) return value;
+    if (!rail) return current;
     const rect = rail.getBoundingClientRect();
     const raw = valueFromPointer(clientX, rect.left, rect.width, range);
     return unityValue === undefined ? raw : snapToDetent(raw, unityValue, range);
@@ -108,7 +111,7 @@ export function Slider({
     if (disabled || event.button !== 0) return;
     event.currentTarget.setPointerCapture(event.pointerId);
     isDragging.current = true;
-    latestValue.current = value;
+    latestValue.current = current;
     commitDragValue(valueAtPointer(event.clientX));
   };
 
@@ -127,13 +130,13 @@ export function Slider({
     const next = valueAfterKey(
       event.key,
       event.shiftKey,
-      value,
+      current,
       range,
       largeStep ?? (max - min) / 10,
     );
     if (next === null) return;
     event.preventDefault();
-    if (next === value) return;
+    if (next === current) return;
     onChange(next);
     onChangeEnd?.(next);
   };
@@ -168,7 +171,7 @@ export function Slider({
         aria-orientation="horizontal"
         aria-valuemin={min}
         aria-valuemax={max}
-        aria-valuenow={value}
+        aria-valuenow={current}
         aria-valuetext={valueText}
         aria-disabled={disabled || undefined}
         onPointerDown={handlePointerDown}

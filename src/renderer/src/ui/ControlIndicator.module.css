@@ -31,17 +31,32 @@
 }
 
 .readout {
-  min-height: 1.2em;
+  /* A fixed line box: a smaller size for long readouts must not make this pill shorter
+     than its neighbours. */
+  --readout-line: calc(var(--text-lg) * 1.2);
+
+  min-height: var(--readout-line);
   font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: var(--readout-line);
   letter-spacing: var(--tracking-tight);
+  text-align: center;
+  white-space: nowrap;
   transition: color var(--duration-slow) ease;
 }
 
 .sm .readout {
+  --readout-line: calc(var(--text-md) * 1.2);
+}
+
+.sm .readout,
+.readout.longReadout {
   font-size: var(--text-md);
+}
+
+.sm .readout.longReadout {
+  font-size: var(--text-xs);
 }
 
 .track {

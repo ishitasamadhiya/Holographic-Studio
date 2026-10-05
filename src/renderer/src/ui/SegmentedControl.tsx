@@ -1,7 +1,7 @@
 import type { CSSProperties, HTMLAttributes, KeyboardEvent, ReactNode, Ref } from 'react';
 import { useFieldControlProps } from './Field';
 import { cx } from './internal/classNames';
-import { edgeEnabledIndex, nextEnabledIndex } from './rovingIndex';
+import { edgeEnabledIndex, nextEnabledIndex, tabStopIndex } from './rovingIndex';
 import styles from './SegmentedControl.module.css';
 
 export interface SegmentedOption<Value extends string> {
@@ -46,6 +46,8 @@ export function SegmentedControl<Value extends string>({
   const field = useFieldControlProps({ ...rest, 'aria-label': label ?? rest['aria-label'] });
   const selectedIndex = options.findIndex((option) => option.value === value);
   const disabledFlags = options.map((option) => disabled || option.disabled === true);
+  // One tab stop for the whole group, which arrow keys also start from.
+  const tabStop = tabStopIndex(selectedIndex, disabledFlags);
 
   const selectIndex = (index: number) => {
     const option = options[index];
@@ -55,7 +57,7 @@ export function SegmentedControl<Value extends string>({
   // Radio-group keyboard model: arrows move the selection, Home/End jump to the ends, and
   // focus follows the selection.
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    const from = Math.max(selectedIndex, 0);
+    const from = Math.max(tabStop, 0);
     let target: number;
     switch (event.key) {
       case 'ArrowRight':
@@ -100,8 +102,6 @@ export function SegmentedControl<Value extends string>({
       {options.map((option, index) => {
         const isSelected = index === selectedIndex;
         const isDisabled = disabledFlags[index] === true;
-        // One tab stop for the whole group: the selected option, or the first when none is.
-        const isTabStop = isSelected || (selectedIndex < 0 && index === 0);
         return (
           <button
             key={option.value}
@@ -109,7 +109,7 @@ export function SegmentedControl<Value extends string>({
             role="radio"
             aria-checked={isSelected}
             disabled={isDisabled}
-            tabIndex={isTabStop && !isDisabled ? 0 : -1}
+            tabIndex={index === tabStop ? 0 : -1}
             className={styles.segment}
             onClick={() => selectIndex(index)}
           >

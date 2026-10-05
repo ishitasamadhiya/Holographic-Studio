@@ -21,3 +21,13 @@ export function nextEnabledIndex(
 export function edgeEnabledIndex(direction: 1 | -1, disabled: readonly boolean[]): number {
   return direction === 1 ? disabled.indexOf(false) : disabled.lastIndexOf(false);
 }
+
+/**
+ * The option that holds the group's single tab stop: the selected one, or the first enabled
+ * one when nothing is selected or the selection is disabled (as a native radio group does).
+ * -1 when every option is disabled.
+ */
+export function tabStopIndex(selectedIndex: number, disabled: readonly boolean[]): number {
+  if (selectedIndex >= 0 && disabled[selectedIndex] === false) return selectedIndex;
+  return edgeEnabledIndex(1, disabled);
+}

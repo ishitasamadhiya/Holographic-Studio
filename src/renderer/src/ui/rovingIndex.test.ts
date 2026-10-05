@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { edgeEnabledIndex, nextEnabledIndex } from './rovingIndex';
+import { edgeEnabledIndex, nextEnabledIndex, tabStopIndex } from './rovingIndex';
 
 describe('nextEnabledIndex', () => {
   const allEnabled = [false, false, false];
@@ -35,5 +35,25 @@ describe('edgeEnabledIndex', () => {
   it('returns -1 when every option is disabled', () => {
     expect(edgeEnabledIndex(1, [true, true])).toBe(-1);
     expect(edgeEnabledIndex(-1, [true, true])).toBe(-1);
+  });
+});
+
+describe('tabStopIndex', () => {
+  it('is the selected option when it is enabled', () => {
+    expect(tabStopIndex(2, [false, false, false])).toBe(2);
+  });
+
+  it('falls back to the first enabled option when the selection is disabled', () => {
+    expect(tabStopIndex(0, [true, false, false])).toBe(1);
+    expect(tabStopIndex(2, [true, false, true])).toBe(1);
+  });
+
+  it('falls back to the first enabled option when nothing is selected', () => {
+    expect(tabStopIndex(-1, [false, false])).toBe(0);
+    expect(tabStopIndex(-1, [true, false])).toBe(1);
+  });
+
+  it('returns -1 when every option is disabled', () => {
+    expect(tabStopIndex(0, [true, true])).toBe(-1);
   });
 });

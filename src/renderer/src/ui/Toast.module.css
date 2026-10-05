@@ -21,6 +21,18 @@
   flex-direction: column-reverse;
 }
 
+/* A centred dialog would be covered by the top of the stack: while one is open (see Modal.tsx)
+   the stack moves to the bottom edge and shows only its newest toast. The others keep their
+   timers and come back when the dialog closes. */
+:global(body:has([data-dialog-layer])) .top {
+  top: auto;
+  bottom: var(--space-6);
+}
+
+:global(body:has([data-dialog-layer])) .viewport > .toast:not(:last-child) {
+  display: none;
+}
+
 .toast {
   --toast-tone: var(--color-info);
   --toast-enter-offset: -10px;
@@ -78,6 +90,12 @@
   flex: 1;
   min-width: 0;
   padding-block: 2px;
+}
+
+.title,
+.description {
+  /* File names have no spaces; they must wrap rather than run out of the card. */
+  overflow-wrap: anywhere;
 }
 
 .title {

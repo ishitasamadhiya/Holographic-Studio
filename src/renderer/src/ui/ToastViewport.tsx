@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { type HTMLAttributes, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { cx } from './internal/classNames';
 import { MODAL_COMPANION_ATTRIBUTE } from './internal/focusTrap';
 import { readDurationMs } from './internal/motion';
@@ -9,7 +9,10 @@ import styles from './Toast.module.css';
 
 export type ToastPlacement = 'top' | 'bottom';
 
-export interface ToastViewportProps {
+export interface ToastViewportProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  'children' | 'role'
+> {
   /** Defaults to the app-wide `toastStore`. */
   store?: ToastStore;
   placement?: ToastPlacement;
@@ -67,7 +70,12 @@ function ToastItem({ toast, onExited }: ToastItemProps) {
  * Mount it once, near the root of the app. Toasts stay on top of sheets and dialogs and
  * remain reachable with Tab while one is open.
  */
-export function ToastViewport({ store = toastStore, placement = 'top' }: ToastViewportProps) {
+export function ToastViewport({
+  store = toastStore,
+  placement = 'top',
+  className,
+  ...rest
+}: ToastViewportProps) {
   const toasts = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const remove = useCallback(
     (toast: ToastRecord) => {
@@ -81,11 +89,12 @@ export function ToastViewport({ store = toastStore, placement = 'top' }: ToastVi
   return (
     <Portal>
       <div
-        role="region"
         aria-label="Notifications"
-        className={cx(styles.viewport, styles[placement])}
         data-testid="toast-viewport"
+        {...rest}
         {...companionMarker}
+        role="region"
+        className={cx(styles.viewport, styles[placement], className)}
       >
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onExited={remove} />

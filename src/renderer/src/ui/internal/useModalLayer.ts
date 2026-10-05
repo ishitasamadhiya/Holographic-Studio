@@ -6,7 +6,10 @@ export interface ModalLayerOptions {
   /** The dialog element. It must be focusable (tabIndex -1) to receive the initial focus. */
   containerRef: RefObject<HTMLElement | null>;
   active: boolean;
-  /** Called when Escape is pressed while this is the top-most layer. Omit to ignore Escape. */
+  /**
+   * Called when Escape is pressed while this is the top-most layer. Omit to ignore Escape;
+   * it is swallowed either way, so window-level shortcuts never see it while a layer is open.
+   */
   onEscape?: () => void;
 }
 
@@ -39,10 +42,10 @@ export function useModalLayer({ containerRef, active, onEscape }: ModalLayerOpti
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!registration.isTopMost()) return;
 
-      if (event.key === 'Escape' && onEscapeRef.current) {
+      if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        onEscapeRef.current();
+        onEscapeRef.current?.();
         return;
       }
       // Ctrl+Tab and friends belong to the system, not to focus navigation.

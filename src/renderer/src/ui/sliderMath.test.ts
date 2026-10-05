@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  sanitizeValue,
   type SliderRange,
   snapToDetent,
   snapToStep,
   valueAfterKey,
   valueFromPointer,
+  stepToNeighbour,
   valueToFraction,
 } from './sliderMath';
 
@@ -126,8 +128,47 @@ describe('valueAfterKey', () => {
     expect(valueAfterKey('PageDown', false, 0.04, unit, 0.1)).toBe(0);
   });
 
+  it('steps to the neighbouring grid point from a value off the grid', () => {
+    const thirds: SliderRange = { min: 0, max: 1, step: 0.3 };
+    // End lands on the max, which is not a whole number of steps from the min.
+    expect(valueAfterKey('ArrowLeft', false, 1, thirds, 0.1)).toBe(0.9);
+    expect(valueAfterKey('ArrowRight', false, 0.9, thirds, 0.1)).toBe(1);
+    expect(valueAfterKey('ArrowRight', false, 0.45, thirds, 0.1)).toBe(0.6);
+    expect(valueAfterKey('ArrowLeft', false, 0.45, thirds, 0.1)).toBe(0.3);
+  });
+
+  it('still moves with the arrow keys when there is no step grid', () => {
+    const free: SliderRange = { min: 0, max: 1, step: 0 };
+    expect(valueAfterKey('ArrowRight', false, 0.5, free, 0.1)).toBe(0.51);
+    expect(valueAfterKey('ArrowLeft', false, 0.5, free, 0.1)).toBe(0.49);
+    expect(valueAfterKey('ArrowRight', false, 1, free, 0.1)).toBe(1);
+  });
+
   it('returns null for keys it does not handle', () => {
     expect(valueAfterKey('Enter', false, 0.5, unit, 0.1)).toBeNull();
     expect(valueAfterKey('a', false, 0.5, unit, 0.1)).toBeNull();
+  });
+});
+
+describe('stepToNeighbour', () => {
+  it('moves exactly one step from a value on the grid, without float noise', () => {
+    let value = 0;
+    for (let press = 0; press < 100; press += 1) value = stepToNeighbour(value, 1, unit);
+    expect(value).toBe(1);
+    expect(stepToNeighbour(0.51, -1, unit)).toBe(0.5);
+    expect(stepToNeighbour(-5, 1, offsetMs)).toBe(0);
+  });
+});
+
+describe('sanitizeValue', () => {
+  it('clamps out-of-range values', () => {
+    expect(sanitizeValue(5, unit)).toBe(1);
+    expect(sanitizeValue(-300, offsetMs)).toBe(-200);
+    expect(sanitizeValue(0.4, unit)).toBe(0.4);
+  });
+
+  it('falls back to the minimum for values that are not finite', () => {
+    expect(sanitizeValue(Number.NaN, offsetMs)).toBe(-200);
+    expect(sanitizeValue(Number.POSITIVE_INFINITY, unit)).toBe(0);
   });
 });

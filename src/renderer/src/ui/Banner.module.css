@@ -42,6 +42,7 @@
   min-width: 0;
   padding-block: 3px;
   color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
   font-size: var(--text-sm);
   line-height: var(--leading-snug);
 }

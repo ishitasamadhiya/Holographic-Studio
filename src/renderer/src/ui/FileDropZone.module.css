@@ -101,6 +101,7 @@
 
 /* Wraps rather than truncates: this line carries hints and error messages. */
 .secondary {
+  overflow-wrap: anywhere;
   color: var(--color-text-tertiary);
   font-size: var(--text-sm);
   line-height: var(--leading-snug);

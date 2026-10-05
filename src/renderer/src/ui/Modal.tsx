@@ -57,8 +57,15 @@ export function Modal({
 
   return (
     <Portal>
-      <div className={cx(styles.layer, exiting && styles.exiting)}>
-        <div className={styles.scrim} onClick={dismissible ? onClose : undefined} />
+      {/* data-dialog-layer moves the toast stack out of the dialog's way (Toast.module.css). */}
+      <div className={cx(styles.layer, exiting && styles.exiting)} data-dialog-layer="">
+        <div
+          className={styles.scrim}
+          // Keeps focus in the dialog: a click on the scrim would otherwise move it to <body>,
+          // where key presses reach the screen behind.
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={dismissible ? onClose : undefined}
+        />
         <div
           {...rest}
           ref={dialogRef}
