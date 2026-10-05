@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FRIENDLY_ERROR_MESSAGES } from '@shared/errors';
 import { useStudioActions, useStudioState } from '@renderer/state/studioContext';
-import { Banner, Button, FormRow, Slider, SparklesIcon, Toggle } from '@renderer/ui';
+import { Banner, Button, FormRow, Slider, Toggle, WaveformIcon } from '@renderer/ui';
 import { settle } from '../components/settle';
 import { StepFrame } from '../components/StepFrame';
 import styles from './steps.module.css';
@@ -59,7 +59,7 @@ export function MonitoringStep() {
         <div className={styles.stack}>
           <Slider
             label="Echo"
-            icon={<SparklesIcon />}
+            icon={<WaveformIcon />}
             value={echo.manual}
             disabled={!isMonitoring}
             onChange={(value) => actions.setManualControl('echo', value)}

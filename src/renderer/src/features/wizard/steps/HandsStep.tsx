@@ -29,9 +29,9 @@ import {
 import styles from './steps.module.css';
 
 const CONTROL_ICONS: Record<ControlId, ReactNode> = {
-  autotune: <WaveformIcon />,
+  autotune: <SparklesIcon />,
   volume: <VolumeIcon />,
-  echo: <SparklesIcon />,
+  echo: <WaveformIcon />,
 };
 
 const HAND_SIDES: readonly HandSide[] = ['left', 'right'];
