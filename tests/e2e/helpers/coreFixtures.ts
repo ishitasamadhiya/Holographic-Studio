@@ -3,9 +3,11 @@
 //
 //   backing    irregular clicks + soft chords + low noise: broadband and never periodic, so
 //              cross-correlating an export with it gives one sharp peak.
-//   reference  a clear lead melody (harmonic tones, centre) over wide chords, PLUS a steady
-//              pilot tone at PILOT_HZ that exists nowhere else. The reference is analysis-only:
-//              finding the pilot in an export would mean it leaked into the mix.
+//   reference  a clear sung-like lead melody (harmonic tones with vibrato and a scoop into each
+//              note, centre) over wide chords, PLUS a steady pilot tone at PILOT_HZ that exists
+//              nowhere else. The reference is analysis-only: finding the pilot in an export
+//              would mean it leaked into the mix. (The analysis tells a voice from an
+//              instrument by its moving pitch; a perfectly steady lead counts as an instrument.)
 //
 // The singer's voice (MIC_HZ) is generated in the page by the spec; nothing in these songs
 // sounds near it, so it can be measured in an export.
@@ -86,6 +88,45 @@ function addTone(
   }
 }
 
+/** Vibrato and scoop of the sung reference melody. */
+const VIBRATO_HZ = 5.5;
+const VIBRATO_CENTS = 25;
+const SCOOP_CENTS = -60;
+const SCOOP_SEC = 0.08;
+const VOICE_HARMONICS = [
+  [1, 0.22],
+  [2, 0.09],
+  [3, 0.05],
+] as const;
+
+/** One sung note: a few harmonics whose pitch scoops up into the note and then sways. */
+function addSungNote(
+  targets: Float32Array[],
+  hz: number,
+  startSec: number,
+  durationSec: number,
+): void {
+  const start = Math.round(startSec * SONG_RATE);
+  const length = Math.round(durationSec * SONG_RATE);
+  const fade = Math.round(0.01 * SONG_RATE);
+  let phase = 0;
+  for (let offset = 0; offset < length; offset++) {
+    const t = offset / SONG_RATE;
+    const scoop = SCOOP_CENTS * Math.max(0, 1 - t / SCOOP_SEC);
+    const vibrato = VIBRATO_CENTS * Math.sin(2 * Math.PI * VIBRATO_HZ * t);
+    phase += (2 * Math.PI * hz * 2 ** ((scoop + vibrato) / 1200)) / SONG_RATE;
+    const edge = Math.min(1, offset / fade, (length - offset) / fade);
+    let sample = 0;
+    for (const [harmonic, amplitude] of VOICE_HARMONICS) {
+      sample += amplitude * Math.sin(harmonic * phase);
+    }
+    for (const target of targets) {
+      const frame = start + offset;
+      if (frame < target.length) target[frame] = (target[frame] ?? 0) + edge * sample;
+    }
+  }
+}
+
 const CHORDS_HZ = [
   [220, 261.63, 329.63],
   [174.61, 220, 261.63],
@@ -132,14 +173,7 @@ function referenceSong(): Float32Array[] {
   const noteSec = REFERENCE_SEC / MELODY_MIDI.length;
   MELODY_MIDI.forEach((midi, index) => {
     const hz = 440 * 2 ** ((midi - 69) / 12);
-    for (const [harmonic, amplitude] of [
-      [1, 0.22],
-      [2, 0.09],
-      [3, 0.05],
-    ] as const) {
-      addTone(left, hz * harmonic, amplitude, index * noteSec, noteSec * 0.92);
-      addTone(right, hz * harmonic, amplitude, index * noteSec, noteSec * 0.92);
-    }
+    addSungNote([left, right], hz, index * noteSec, noteSec * 0.92);
   });
   addTone(left, PILOT_HZ, 0.08, 0, REFERENCE_SEC);
   addTone(right, PILOT_HZ, 0.08, 0, REFERENCE_SEC);
