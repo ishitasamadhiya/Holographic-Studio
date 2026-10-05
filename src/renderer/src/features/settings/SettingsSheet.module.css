@@ -1,0 +1,19 @@
+.sections {
+  display: grid;
+  gap: var(--space-6);
+  padding-top: var(--space-2);
+}
+
+.lockNote,
+.version {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.lockNote {
+  padding-inline: var(--space-1);
+}
+
+.version {
+  text-align: center;
+}

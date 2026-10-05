@@ -1,0 +1,46 @@
+/* A control with a quiet line of explanation under it. */
+.stack {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.quiet {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+/* The Advanced disclosure: looks like a section title that can be pressed. */
+.disclosure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-3) 0 var(--space-4);
+  border: var(--hairline) solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-medium);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.disclosure:hover {
+  background: var(--layer-2);
+}
+
+.disclosure svg {
+  color: var(--color-text-tertiary);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.disclosure[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.advanced {
+  display: grid;
+  gap: var(--space-3);
+}
