@@ -1,0 +1,34 @@
+.edge {
+  position: absolute;
+  top: 50%;
+  z-index: var(--z-floating);
+  display: grid;
+  gap: var(--space-3);
+  transform: translateY(-50%);
+}
+
+.left {
+  left: var(--studio-edge);
+}
+
+.right {
+  right: var(--studio-edge);
+  transition:
+    opacity var(--duration-base) ease,
+    visibility var(--duration-base);
+}
+
+/* The open Controls panel takes this corner; the indicators make way rather than float
+   over the middle of the picture. */
+.right[data-covered] {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* A short window has no room for two indicators above each other between the top bar and
+   the controls button, so they stand side by side instead. */
+@media (max-height: 720px) {
+  .right {
+    grid-auto-flow: column;
+  }
+}
