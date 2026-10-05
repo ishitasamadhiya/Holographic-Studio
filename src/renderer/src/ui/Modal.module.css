@@ -1,0 +1,133 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  /* A dialog blocks the window, including dragging it by the strip it covers
+     (see global.css). */
+  -webkit-app-region: no-drag;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim-strong);
+  backdrop-filter: blur(6px);
+  animation: fadeIn var(--duration-base) ease;
+}
+
+.dialog {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  max-height: 100%;
+  padding: var(--space-8) var(--space-6) var(--space-6);
+  overflow-y: auto;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-backdrop-strong);
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+  text-align: center;
+  animation: popIn var(--duration-slow) var(--ease-out);
+}
+
+/* The dialog itself only holds focus when it has no button to give it to. */
+.dialog:focus-visible {
+  outline: none;
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+}
+
+.sm {
+  max-width: 360px;
+}
+
+.md {
+  max-width: 460px;
+}
+
+.exiting .scrim {
+  animation: fadeOut var(--duration-base) ease forwards;
+}
+
+.exiting .dialog {
+  animation: popOut var(--duration-base) var(--ease-in) forwards;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: var(--space-4);
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: 50%;
+  background: var(--layer-2);
+  color: var(--color-text-primary);
+}
+
+.icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.title {
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+}
+
+.description {
+  max-width: 34ch;
+  margin-top: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+.content {
+  width: 100%;
+  margin-top: var(--space-4);
+}
+
+/* Buttons share the row equally, so a pair always lines up whatever their labels are. */
+.actions {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--space-2);
+  width: 100%;
+  margin-top: var(--space-6);
+}
+
+.actions > * {
+  width: 100%;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+}
+
+@keyframes popOut {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}

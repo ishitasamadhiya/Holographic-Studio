@@ -1,0 +1,48 @@
+.stepper {
+  display: flex;
+  align-items: center;
+}
+
+.step {
+  position: relative;
+  border-radius: var(--radius-full);
+  background: var(--track-fill);
+  transition:
+    width var(--duration-slow) var(--ease-out),
+    background-color var(--duration-slow) ease;
+}
+
+/* A finished step is a foreground mark of secondary weight, like secondary text. */
+.step[data-state='done'] {
+  background: var(--color-text-secondary);
+}
+
+/* The current step is the only place the accent appears. */
+.step[data-state='current'] {
+  background: var(--holo-gradient);
+}
+
+/* ── Dots ──────────────────────────────────────────────────────────────── */
+.dots {
+  gap: 6px;
+}
+
+.dots .step {
+  width: 6px;
+  height: 6px;
+}
+
+.dots .step[data-state='current'] {
+  width: 22px;
+}
+
+/* ── Segmented bar ─────────────────────────────────────────────────────── */
+.bar {
+  gap: 4px;
+  width: 100%;
+}
+
+.bar .step {
+  flex: 1;
+  height: 3px;
+}

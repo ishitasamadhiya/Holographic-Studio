@@ -1,0 +1,126 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-sheet);
+  /* The layer covers the top bar's drag strip; without this, clicks near the top of the
+     panel (its Close button) would move the window instead (see global.css). */
+  -webkit-app-region: no-drag;
+}
+
+/* Light on purpose: the performer should still see the video while changing settings. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim-light);
+  animation: fadeIn var(--duration-base) ease;
+}
+
+.panel {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 2 * var(--space-3));
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-fill-strong);
+  backdrop-filter: var(--glass-backdrop-strong);
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+  animation: slideIn var(--duration-slow) var(--ease-out);
+}
+
+/* The panel itself only holds focus for a moment when the sheet opens (it is not a tab
+   stop), so it shows no ring. */
+.panel:focus-visible {
+  outline: none;
+  box-shadow: var(--glass-edge), var(--shadow-lg);
+}
+
+.exiting .scrim {
+  animation: fadeOut var(--duration-base) ease forwards;
+}
+
+.exiting .panel {
+  animation: slideOut var(--duration-base) var(--ease-in) forwards;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex: none;
+  padding: var(--space-5) var(--space-4) var(--space-3) var(--space-6);
+}
+
+.heading {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding-top: 5px;
+}
+
+.title {
+  font-size: var(--text-xl);
+}
+
+.description {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+/* The scroll area fades out at both ends instead of cutting content off with a hard line.
+   The scrollbar always has its gutter, and the right padding is reduced by the same amount,
+   so content lines up with the header and footer whether or not it scrolls. */
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-2) calc(var(--space-6) - var(--scrollbar-size)) var(--space-6) var(--space-6);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 12px,
+    #000 calc(100% - 20px),
+    transparent 100%
+  );
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  flex: none;
+  padding: var(--space-3) var(--space-6) var(--space-5);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
+@keyframes slideOut {
+  to {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}

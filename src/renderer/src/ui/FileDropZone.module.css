@@ -1,0 +1,115 @@
+.zone {
+  --zone-border: var(--layer-4);
+  --zone-icon: var(--color-text-secondary);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  background: var(--layer-1);
+  /* A dashed outline drawn inside the box, so it follows the corner radius cleanly. */
+  outline: 1px dashed var(--zone-border);
+  outline-offset: -1px;
+  transition:
+    background-color var(--duration-fast) ease,
+    outline-color var(--duration-fast) ease,
+    box-shadow var(--duration-base) ease;
+}
+
+.zone:hover:not([data-disabled]) {
+  --zone-border: rgb(255 255 255 / 0.4);
+
+  background: var(--layer-2);
+}
+
+/* A chosen file is a settled fact: the outline turns solid and quiet. */
+.zone[data-state='loading'],
+.zone[data-state='ready'],
+.zone[data-state='error'] {
+  --zone-border: var(--glass-border);
+
+  outline-style: solid;
+}
+
+.zone[data-state='ready'] {
+  --zone-icon: var(--color-success);
+}
+
+.zone[data-state='error'] {
+  --zone-border: rgb(var(--color-danger-rgb) / 0.45);
+  --zone-icon: var(--color-danger);
+}
+
+.zone[data-drag-over] {
+  --zone-border: var(--holo-ice);
+  --zone-icon: var(--holo-ice);
+
+  outline-style: solid;
+  background: var(--layer-2);
+  box-shadow: 0 0 0 4px rgb(var(--holo-ice-rgb) / 0.16);
+}
+
+.zone[data-disabled] {
+  opacity: 0.45;
+}
+
+.surface {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  padding: 14px var(--space-4);
+  border-radius: inherit;
+  text-align: left;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: var(--hairline) solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--layer-2);
+  color: var(--zone-icon);
+  transition: color var(--duration-fast) ease;
+}
+
+.icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.primary {
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Wraps rather than truncates: this line carries hints and error messages. */
+.secondary {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.zone[data-state='error'] .secondary {
+  color: var(--color-danger);
+}
+
+.clear {
+  margin-right: var(--space-3);
+}
