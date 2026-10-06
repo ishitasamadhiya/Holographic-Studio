@@ -1,42 +1,75 @@
 # Holographic Studio
 
-Holographic Studio is a desktop app for recording vocal covers. You sing along to a backing
-track and hear the music and your own voice, with effects, in your headphones. Your webcam
-watches your hands: opening your right hand adds autotune, moving it toward the camera makes
-your voice louder, and opening your left hand adds echo. When you stop, the app saves the
-take as one MP4 video with your picture, the music and your processed voice already in sync.
+A desktop recording studio for vocal covers that you control with your hands. Sing along to
+a backing track, hear yourself with effects in your headphones, and let your webcam turn
+hand gestures into live autotune, echo and volume. Stop, and you get one MP4 with your
+picture, the music and your processed voice in sync.
 
-## What it does
+Built for singing with friends at home, not for engineers: no mixer, no timeline, no cloud.
+Everything runs on your Mac.
 
-1. You pick a **backing track**, usually the instrumental (karaoke) version of a song.
-2. Optionally you add the **original song**. The app listens to it once to learn the melody
-   and the key, so the autotune knows which notes you are aiming for. The original is never
-   played to you and never ends up in your recording.
-3. You sing. You hear the backing track and your own voice, live, with autotune, echo and
-   volume set by your hands (or by sliders and the keyboard).
-4. You press Stop and save. The app lines up your voice, the music and the camera picture
-   and writes a single `.mp4` file.
+## At a glance
+
+| You do this                               | The app does this                                                                                                             |
+| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Open or close your **right hand**         | More or less **autotune**                                                                                                     |
+| Move your **right hand** closer / farther | Louder / quieter **voice**                                                                                                    |
+| Open or close your **left hand**          | More or less **echo**                                                                                                         |
+| Add a **backing track** (instrumental)    | Plays in your headphones and goes into the video                                                                              |
+| Add the **original song**                 | Learns its melody and key so autotune aims for the notes the song actually has; it never plays and is never in your recording |
+| Press **Record**, then **Stop**           | Saves a single `.mp4` (H.264 + AAC) wherever you choose                                                                       |
+
+No camera? **Audio Only** mode does the same with sliders and the keyboard.
+
+## Quick Start
+
+You need a Mac (macOS 12 or newer) and [Node.js 22](https://nodejs.org) (the "LTS" download).
+Open **Terminal** and paste these lines one at a time:
+
+```bash
+git clone https://github.com/ishitasamadhiya/Holographic-Studio.git
+cd Holographic-Studio
+./setup.sh
+npm run dev
+```
+
+- `./setup.sh` installs everything (it downloads Electron and FFmpeg, so give it a few
+  minutes) and ends with a checklist that should read `All good`.
+- `npm run dev` opens the app. The first launch is a short **setup wizard**: pick your
+  microphone, camera and headphones, test them, try your hands, add your songs. When macOS
+  asks for microphone and camera access, click **Allow** (while you run from Terminal, the
+  prompt names **Terminal**; see [macOS permissions](#macos-permissions)).
+- Wear **wired headphones**. Speakers feed the music back into the microphone, and Bluetooth
+  adds a long delay to your own voice.
+
+Next time, just `cd Holographic-Studio` and `npm run dev`. To get a double-clickable app,
+run `npm run dist` and open `release/mac-arm64/Holographic Studio.app`.
 
 ## Features
 
-- **Two recording modes**
-  - **Video**: the camera records you and follows your hands.
-  - **Audio Only**: no camera; effects are set with sliders and the keyboard. The saved
-    MP4 shows a still picture with the app's artwork.
-- **Three hand gestures**: right hand open/closed = autotune strength, right hand
-  near/far = vocal volume, left hand open/closed = echo amount.
-- **Manual control**: every effect has a slider. Each one can be switched between
-  _Gesture_ and _Manual_, and the keyboard nudges the sliders.
-- **Melody-aware autotune**: with the original song loaded, the autotune pulls you toward the
-  melody note being sung at that moment; otherwise toward the nearest note of the song's
-  key, or the nearest semitone.
-- **Live monitoring**: you hear yourself with the effects while you sing, and the app shows
-  how long that delay is.
-- **Pause and resume** inside a take, a countdown before recording, and an optional light
-  reverb.
-- **One-file export**: an MP4 (H.264 video + AAC audio, 48 kHz stereo) with the vocal and
-  backing mixed, levelled and limited. FFmpeg is built in.
-- **Guided first run**: a setup wizard checks your microphone, camera, headphones and hands.
+- **Video or Audio Only.** With the camera, your hands control the effects and you are
+  recorded; without it, you use sliders and keyboard shortcuts and the video shows artwork.
+- **Gesture or manual, per effect.** Autotune, echo and volume each switch between _Gesture_
+  and _Manual_. When the camera loses your hands, the effect settles gently to its slider.
+- **Melody-aware autotune.** With the original song loaded, you are pulled toward the note
+  being sung at that moment; otherwise toward the song's key, or the nearest note.
+- **Live, low-latency monitoring** of your processed voice plus the backing track, with the
+  delay shown in Settings.
+- **Countdown, pause and resume, discard,** and an optional light reverb.
+- **One-file export** with the voice and music mixed, levelled and limited. FFmpeg is built
+  in; nothing to install.
+- **Remembers your setup**: devices, levels, control choices and the songs you used last.
+
+## Contents
+
+- [Requirements](#requirements)
+- [Everyday commands](#everyday-commands)
+- [macOS permissions](#macos-permissions)
+- [How to use it](#how-to-use-it)
+- [Tips for good results](#tips-for-good-results)
+- [Troubleshooting](#troubleshooting)
+- [Architecture in brief](#architecture-in-brief) · [Project structure](#project-structure) · [Testing](#testing)
+- [Known limitations](#known-limitations) · [Credits and licences](#credits-and-licences)
 
 ## Requirements
 
@@ -55,35 +88,6 @@ repository; setup copies everything else into place.
 
 To check your Node.js version, open Terminal and type `node -v`. It should print `v22.12.0` or
 a higher number.
-
-## Quick Start
-
-Open the **Terminal** app and paste these lines one at a time, pressing Return after each:
-
-```bash
-git clone https://github.com/ishitasamadhiya/Holographic-Studio.git
-cd Holographic-Studio
-./setup.sh
-npm run dev
-```
-
-What happens:
-
-- `./setup.sh` checks your Node.js version, installs everything (this downloads Electron and
-  FFmpeg, so it can take a few minutes) and finishes with a checklist. The last line should
-  read `All good. Start the app with: npm run dev`.
-- `npm run dev` opens the app. **On first launch you see the setup wizard**, starting with
-  "Choose your microphone". macOS asks for permission to use the microphone (and later the
-  camera); while you run the app from Terminal, that prompt names **Terminal**, not
-  Holographic Studio. Click **Allow**.
-
-To quit, close the app window (or press `Ctrl+C` in the Terminal window). Next time you only
-need:
-
-```bash
-cd Holographic-Studio
-npm run dev
-```
 
 ## Everyday commands
 
